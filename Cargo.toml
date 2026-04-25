@@ -1,0 +1,27 @@
+[workspace]
+resolver = "2"
+members = [
+    "ccc/domain",
+    "ccc/usecase",
+    "ccc/infrastructure",
+    "ccc/presentation",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+authors = ["Shunsuke Tsuchiya"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/shunsock/ccc"
+
+[workspace.dependencies]
+domain = { path = "ccc/domain" }
+usecase = { path = "ccc/usecase" }
+infrastructure = { path = "ccc/infrastructure" }
+pest = "2.7"
+pest_derive = "2.7"
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"
+chrono = { version = "0.4", default-features = false }
+assert_cmd = "2"
+predicates = "3"

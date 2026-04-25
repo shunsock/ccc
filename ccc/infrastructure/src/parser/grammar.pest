@@ -1,0 +1,38 @@
+expression = { term ~ (additive_operator ~ term)* }
+
+term = { power ~ (multiplicative_operator ~ power)* }
+
+power = { unary ~ (power_operator ~ unary)* }
+
+unary = { unary_operator? ~ atom }
+
+atom = { function_call | datetime_literal | duration_literal | number | list | "(" ~ expression ~ ")" }
+
+list = { "[" ~ (expression ~ ("," ~ expression)*)? ~ "]" }
+
+function_call = { identifier ~ "(" ~ arguments ~ ")" }
+
+arguments = { (expression ~ ("," ~ expression)*)? }
+
+datetime_literal = @{
+    ASCII_DIGIT{4} ~ "-" ~ ASCII_DIGIT{2} ~ "-" ~ ASCII_DIGIT{2}
+    ~ "T"
+    ~ ASCII_DIGIT{2} ~ ":" ~ ASCII_DIGIT{2} ~ ":" ~ ASCII_DIGIT{2}
+    ~ timezone_offset?
+}
+timezone_offset = @{ "Z" | (("+" | "-") ~ ASCII_DIGIT{2} ~ (":" ~ ASCII_DIGIT{2})?) }
+
+duration_literal = @{ ASCII_DIGIT+ ~ ":" ~ ASCII_DIGIT{2} ~ ":" ~ ASCII_DIGIT{2} }
+
+number = @{ float | integer }
+float = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+integer = @{ ASCII_DIGIT+ }
+
+identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
+additive_operator = { "+" | "-" }
+multiplicative_operator = { "*" | "/" | "%" }
+power_operator = { "^" }
+unary_operator = { "+" | "-" }
+
+WHITESPACE = _{ " " | "\t" }
