@@ -114,12 +114,21 @@ fn list_len(arguments: &[Value]) -> Result<Value, CccError> {
     Ok(Value::Integer(elements.len() as i64))
 }
 
-fn list_sum(arguments: &[Value]) -> Result<Value, CccError> {
-    let elements = expect_single_list("sum", arguments)?;
+fn sum_durations(elements: &[Value]) -> Result<Value, CccError> {
+    let mut total_seconds: i64 = 0;
+    for elem in elements {
+        match elem {
+            Value::DurationTime(s) => total_seconds += s,
+            _ => return Err(CccError::eval("sum: list elements must be the same type")),
+        }
+    }
+    Ok(Value::DurationTime(total_seconds))
+}
+
+fn sum_numbers(elements: &[Value]) -> Result<Value, CccError> {
     let mut has_float = false;
     let mut int_sum: i64 = 0;
     let mut float_sum: f64 = 0.0;
-
     for elem in elements {
         match elem {
             Value::Integer(n) => {
@@ -130,17 +139,24 @@ fn list_sum(arguments: &[Value]) -> Result<Value, CccError> {
                 has_float = true;
                 float_sum += n;
             }
-            Value::List(_) => return Err(CccError::eval("sum: list elements must be numbers")),
-            Value::DurationTime(_) | Value::DateTime { .. } | Value::Timestamp(_) => {
-                return Err(CccError::eval("sum: list elements must be numbers"));
-            }
+            _ => return Err(CccError::eval("sum: list elements must be the same type")),
         }
     }
-
     if has_float {
         Ok(Value::Float(float_sum))
     } else {
         Ok(Value::Integer(int_sum))
+    }
+}
+
+fn list_sum(arguments: &[Value]) -> Result<Value, CccError> {
+    let elements = expect_single_list("sum", arguments)?;
+
+    match elements.first() {
+        None => Ok(Value::Integer(0)),
+        Some(Value::DurationTime(_)) => sum_durations(elements),
+        Some(Value::Integer(_) | Value::Float(_)) => sum_numbers(elements),
+        _ => Err(CccError::eval("sum: unsupported element type")),
     }
 }
 
