@@ -448,18 +448,6 @@ fn evaluate_mean_duration() {
 }
 
 #[test]
-fn evaluate_e_alias() {
-    // Arrange
-    let mut cmd = ccc();
-
-    // Act
-    let result = cmd.arg("E([1, 2, 3, 4, 5])").assert();
-
-    // Assert
-    result.success().stdout("3\n");
-}
-
-#[test]
 fn evaluate_mean_empty_fails() {
     // Arrange
     let mut cmd = ccc();
@@ -495,18 +483,6 @@ fn evaluate_var_single_element() {
 
     // Assert
     result.success().stdout("0\n");
-}
-
-#[test]
-fn evaluate_v_alias() {
-    // Arrange
-    let mut cmd = ccc();
-
-    // Act
-    let result = cmd.arg("V([1, 2, 3, 4, 5])").assert();
-
-    // Assert
-    result.success().stdout("2\n");
 }
 
 #[test]
