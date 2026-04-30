@@ -1,4 +1,4 @@
-use domain::ast::{AbstractSyntaxTree, BinaryOperation, Expression};
+use domain::ast::{AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression};
 use domain::error::CccError;
 use domain::interface::type_checker::CccTypeChecker;
 use domain::static_type::StaticType;
@@ -47,6 +47,24 @@ fn infer_type(expression: &Expression) -> Result<StaticType, CccError> {
             let left_type = infer_type(left)?;
             let right_type = infer_type(right)?;
             infer_binary_type(operator, &left_type, &right_type)
+        }
+
+        Expression::TypeCast {
+            operand,
+            target_type,
+        } => {
+            let operand_type = infer_type(operand)?;
+            match operand_type {
+                StaticType::Integer | StaticType::Float | StaticType::Unknown => {
+                    match target_type {
+                        CastTargetType::Integer => Ok(StaticType::Integer),
+                        CastTargetType::Float => Ok(StaticType::Float),
+                    }
+                }
+                _ => Err(CccError::type_check(format!(
+                    "cannot cast {operand_type} with 'as'"
+                ))),
+            }
         }
 
         Expression::FunctionCall { name, arguments } => {

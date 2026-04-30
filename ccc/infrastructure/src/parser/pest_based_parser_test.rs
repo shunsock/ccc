@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use domain::ast::{BinaryOperation, Expression, UnaryOperation};
+    use domain::ast::{BinaryOperation, CastTargetType, Expression, UnaryOperation};
     use domain::interface::parser::CccParser;
 
     use crate::parser::PestBasedParser;
@@ -1009,6 +1009,114 @@ mod tests {
                 minute: 0,
                 second: 0,
                 offset_seconds: 0,
+            }
+        );
+    }
+
+    // --- Type cast syntax ---
+
+    #[test]
+    fn parse_integer_as_float() {
+        // Arrange
+        let input = "3 as float";
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(
+            result,
+            Expression::TypeCast {
+                operand: Box::new(Expression::Integer(3)),
+                target_type: CastTargetType::Float,
+            }
+        );
+    }
+
+    #[test]
+    fn parse_float_as_int() {
+        // Arrange
+        let input = "3.7 as int";
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(
+            result,
+            Expression::TypeCast {
+                operand: Box::new(Expression::Float(3.7)),
+                target_type: CastTargetType::Integer,
+            }
+        );
+    }
+
+    #[test]
+    fn parse_expression_result_as_int() {
+        // Arrange: (1 + 2) as int
+        let input = "(1 + 2) as int";
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(
+            result,
+            Expression::TypeCast {
+                operand: Box::new(Expression::BinaryOperation {
+                    operator: BinaryOperation::Add,
+                    left: Box::new(Expression::Integer(1)),
+                    right: Box::new(Expression::Integer(2)),
+                }),
+                target_type: CastTargetType::Integer,
+            }
+        );
+    }
+
+    #[test]
+    fn parse_cast_in_binary_expression() {
+        // Arrange: 2 * 3 as float + 1 → (2 * (3 as float)) + 1
+        // `as` binds at postfix level (tighter than multiplicative)
+        let input = "2 * 3 as float + 1";
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(
+            result,
+            Expression::BinaryOperation {
+                operator: BinaryOperation::Add,
+                left: Box::new(Expression::BinaryOperation {
+                    operator: BinaryOperation::Multiply,
+                    left: Box::new(Expression::Integer(2)),
+                    right: Box::new(Expression::TypeCast {
+                        operand: Box::new(Expression::Integer(3)),
+                        target_type: CastTargetType::Float,
+                    }),
+                }),
+                right: Box::new(Expression::Integer(1)),
+            }
+        );
+    }
+
+    #[test]
+    fn parse_chained_cast() {
+        // Arrange: 42 as float as int
+        let input = "42 as float as int";
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(
+            result,
+            Expression::TypeCast {
+                operand: Box::new(Expression::TypeCast {
+                    operand: Box::new(Expression::Integer(42)),
+                    target_type: CastTargetType::Float,
+                }),
+                target_type: CastTargetType::Integer,
             }
         );
     }

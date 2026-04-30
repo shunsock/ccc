@@ -1,4 +1,6 @@
-use domain::ast::{AbstractSyntaxTree, BinaryOperation, Expression, UnaryOperation};
+use domain::ast::{
+    AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression, UnaryOperation,
+};
 use domain::error::CccError;
 use domain::interface::evaluator::CccEvaluator;
 use domain::value::Value;
@@ -34,6 +36,13 @@ fn evaluate_expression(expression: &Expression) -> Result<Value, CccError> {
             let evaluated_arguments: Result<Vec<Value>, CccError> =
                 arguments.iter().map(evaluate_expression).collect();
             builtin::call_builtin(name, &evaluated_arguments?)
+        }
+        Expression::TypeCast {
+            operand,
+            target_type,
+        } => {
+            let value = evaluate_expression(operand)?;
+            evaluate_type_cast(&value, target_type)
         }
         Expression::List(elements) => {
             let evaluated: Result<Vec<Value>, CccError> =
@@ -263,6 +272,19 @@ fn evaluate_unary(operator: &UnaryOperation, value: &Value) -> Result<Value, Ccc
     }
 }
 
+fn evaluate_type_cast(value: &Value, target_type: &CastTargetType) -> Result<Value, CccError> {
+    match target_type {
+        CastTargetType::Integer => {
+            let n = to_i64(value)?;
+            Ok(Value::Integer(n))
+        }
+        CastTargetType::Float => {
+            let n = to_f64(value)?;
+            Ok(Value::Float(n))
+        }
+    }
+}
+
 fn to_f64(value: &Value) -> Result<f64, CccError> {
     match value {
         Value::Integer(n) => Ok(*n as f64),
@@ -274,7 +296,6 @@ fn to_f64(value: &Value) -> Result<f64, CccError> {
     }
 }
 
-#[allow(dead_code)]
 fn to_i64(value: &Value) -> Result<i64, CccError> {
     match value {
         Value::Integer(n) => Ok(*n),

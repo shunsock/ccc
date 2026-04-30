@@ -1,3 +1,10 @@
+/// Target type for `as` type cast expressions.
+#[derive(Debug, Clone, PartialEq)]
+pub enum CastTargetType {
+    Integer,
+    Float,
+}
+
 /// Binary operators.
 #[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOperation {
@@ -35,6 +42,11 @@ pub enum Expression {
         arguments: Vec<Expression>,
     },
     List(Vec<Expression>),
+    /// Type cast expression: `<expr> as int` or `<expr> as float`.
+    TypeCast {
+        operand: Box<Expression>,
+        target_type: CastTargetType,
+    },
     /// Duration literal parsed from `HH:MM:SS` syntax.
     DurationTime {
         hours: i64,
