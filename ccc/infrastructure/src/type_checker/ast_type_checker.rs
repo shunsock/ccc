@@ -17,7 +17,10 @@ fn infer_type(expression: &Expression) -> Result<StaticType, CccError> {
     match expression {
         Expression::Integer(_) => Ok(StaticType::Integer),
         Expression::Float(_) => Ok(StaticType::Float),
-        Expression::List(_) => Ok(StaticType::List),
+        Expression::List(elements) => {
+            infer_list_type(elements)?;
+            Ok(StaticType::List)
+        }
         Expression::DurationTime { .. } => Ok(StaticType::DurationTime),
         Expression::DateTime { .. } => Ok(StaticType::DateTime),
 
@@ -53,6 +56,24 @@ fn infer_type(expression: &Expression) -> Result<StaticType, CccError> {
             infer_function_return_type(name, &arg_types)
         }
     }
+}
+
+/// Validate that all elements of a list have the same type.
+fn infer_list_type(elements: &[Expression]) -> Result<(), CccError> {
+    let first = match elements.first() {
+        None => return Ok(()),
+        Some(e) => e,
+    };
+    let expected = infer_type(first)?;
+    for (i, elem) in elements.iter().enumerate().skip(1) {
+        let actual = infer_type(elem)?;
+        if actual != expected {
+            return Err(CccError::type_check(format!(
+                "list elements must be the same type, expected {expected} at index 0 but found {actual} at index {}", i
+            )));
+        }
+    }
+    Ok(())
 }
 
 /// Determine the result type of a binary operation, or error if unsupported.

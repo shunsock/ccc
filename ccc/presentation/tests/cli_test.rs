@@ -284,6 +284,20 @@ fn invalid_expression_fails() {
 }
 
 #[test]
+fn mixed_type_list_fails() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("[1, 2.0, 3]").assert();
+
+    // Assert
+    result
+        .failure()
+        .stderr(predicate::str::contains("list elements must be the same type"));
+}
+
+#[test]
 fn unknown_function_fails() {
     // Arrange
     let mut cmd = ccc();
