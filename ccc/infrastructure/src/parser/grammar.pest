@@ -22,7 +22,10 @@ datetime_literal = @{
 }
 timezone_offset = @{ "Z" | (("+" | "-") ~ ASCII_DIGIT{2} ~ (":" ~ ASCII_DIGIT{2})?) }
 
-duration_literal = @{ ASCII_DIGIT+ ~ ":" ~ ASCII_DIGIT{2} ~ ":" ~ ASCII_DIGIT{2} }
+duration_literal = @{
+    ASCII_DIGIT+ ~ ":" ~ ASCII_DIGIT{2} ~ ":" ~ ASCII_DIGIT{2}
+  | ASCII_DIGIT+ ~ ":" ~ ASCII_DIGIT{2}
+}
 
 number = @{ float | integer }
 float = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }

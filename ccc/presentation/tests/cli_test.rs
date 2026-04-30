@@ -769,6 +769,44 @@ fn evaluate_duration_zero() {
     result.success().stdout("0:00:00\n");
 }
 
+// --- MM:SS duration ---
+
+#[test]
+fn evaluate_duration_mm_ss() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("10:00").assert();
+
+    // Assert
+    result.success().stdout("0:10:00\n");
+}
+
+#[test]
+fn evaluate_duration_mm_ss_with_seconds() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("1:30").assert();
+
+    // Assert
+    result.success().stdout("0:01:30\n");
+}
+
+#[test]
+fn evaluate_datetime_add_mm_ss_duration() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("2025-12-25T15:30:00+09 + 10:00").assert();
+
+    // Assert
+    result.success().stdout("2025-12-25T15:40:00+09:00\n");
+}
+
 // --- DateTime ---
 
 #[test]
