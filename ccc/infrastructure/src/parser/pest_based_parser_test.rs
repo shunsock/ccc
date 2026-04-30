@@ -1012,4 +1012,53 @@ mod tests {
             }
         );
     }
+
+    // --- Method chain syntax ---
+
+    #[test]
+    fn parse_method_call_sum() {
+        // Arrange: [1, 2, 3].sum() desugars to sum([1, 2, 3])
+        let input = "[1, 2, 3].sum()";
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(
+            result,
+            Expression::FunctionCall {
+                name: "sum".to_string(),
+                arguments: vec![Expression::List(vec![
+                    Expression::Integer(1),
+                    Expression::Integer(2),
+                    Expression::Integer(3),
+                ])],
+            }
+        );
+    }
+
+    #[test]
+    fn parse_method_chain_multiple() {
+        // Arrange: [1, 2, 3].tail().sum() desugars to sum(tail([1, 2, 3]))
+        let input = "[1, 2, 3].tail().sum()";
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(
+            result,
+            Expression::FunctionCall {
+                name: "sum".to_string(),
+                arguments: vec![Expression::FunctionCall {
+                    name: "tail".to_string(),
+                    arguments: vec![Expression::List(vec![
+                        Expression::Integer(1),
+                        Expression::Integer(2),
+                        Expression::Integer(3),
+                    ])],
+                }],
+            }
+        );
+    }
 }
