@@ -292,9 +292,9 @@ fn mixed_type_list_fails() {
     let result = cmd.arg("[1, 2.0, 3]").assert();
 
     // Assert
-    result
-        .failure()
-        .stderr(predicate::str::contains("list elements must be the same type"));
+    result.failure().stderr(predicate::str::contains(
+        "list elements must be the same type",
+    ));
 }
 
 #[test]

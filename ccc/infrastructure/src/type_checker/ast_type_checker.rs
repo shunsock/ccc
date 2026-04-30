@@ -70,7 +70,8 @@ fn infer_list_element_type(elements: &[Expression]) -> Result<Option<StaticType>
         let actual = infer_type(elem)?;
         if actual != expected {
             return Err(CccError::type_check(format!(
-                "list elements must be the same type, expected {expected} at index 0 but found {actual} at index {}", i
+                "list elements must be the same type, expected {expected} at index 0 but found {actual} at index {}",
+                i
             )));
         }
     }
