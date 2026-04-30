@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use domain::ast::{AbstractSyntaxTree, BinaryOperation, Expression, UnaryOperation};
+    use domain::ast::{AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression, UnaryOperation};
     use domain::interface::type_checker::CccTypeChecker;
 
     use crate::type_checker::AstTypeChecker;
@@ -135,6 +135,104 @@ mod tests {
             })
             .is_ok()
         );
+    }
+
+    // --- Type cast ---
+
+    #[test]
+    fn cast_integer_to_float_passes() {
+        // Arrange
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::Integer(3)),
+            target_type: CastTargetType::Float,
+        };
+
+        // Act & Assert
+        assert!(check(expr).is_ok());
+    }
+
+    #[test]
+    fn cast_float_to_int_passes() {
+        // Arrange
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::Float(3.7)),
+            target_type: CastTargetType::Integer,
+        };
+
+        // Act & Assert
+        assert!(check(expr).is_ok());
+    }
+
+    #[test]
+    fn cast_integer_to_int_passes() {
+        // Arrange
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::Integer(3)),
+            target_type: CastTargetType::Integer,
+        };
+
+        // Act & Assert
+        assert!(check(expr).is_ok());
+    }
+
+    #[test]
+    fn cast_float_to_float_passes() {
+        // Arrange
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::Float(3.0)),
+            target_type: CastTargetType::Float,
+        };
+
+        // Act & Assert
+        assert!(check(expr).is_ok());
+    }
+
+    #[test]
+    fn cast_duration_to_int_is_error() {
+        // Arrange
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::DurationTime {
+                hours: 0,
+                minutes: 10,
+                seconds: 0,
+            }),
+            target_type: CastTargetType::Integer,
+        };
+
+        // Act & Assert
+        assert!(check(expr).is_err());
+    }
+
+    #[test]
+    fn cast_datetime_to_int_is_error() {
+        // Arrange
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::DateTime {
+                year: 2026,
+                month: 1,
+                day: 1,
+                hour: 0,
+                minute: 0,
+                second: 0,
+                offset_seconds: 0,
+            }),
+            target_type: CastTargetType::Integer,
+        };
+
+        // Act & Assert
+        assert!(check(expr).is_err());
+    }
+
+    #[test]
+    fn cast_list_to_int_is_error() {
+        // Arrange
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::List(vec![Expression::Integer(1)])),
+            target_type: CastTargetType::Integer,
+        };
+
+        // Act & Assert
+        assert!(check(expr).is_err());
     }
 
     // --- Valid numeric binary operations ---

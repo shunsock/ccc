@@ -6,9 +6,14 @@ power = { unary ~ (power_operator ~ unary)* }
 
 unary = { unary_operator? ~ postfix }
 
-postfix = { atom ~ method_call* }
+postfix = { atom ~ postfix_suffix* }
+
+postfix_suffix = { method_call | type_cast }
 
 method_call = { "." ~ identifier ~ "(" ~ arguments ~ ")" }
+
+type_cast = { "as" ~ cast_type }
+cast_type = @{ "int" | "float" }
 
 atom = { function_call | datetime_literal | duration_literal | number | list | "(" ~ expression ~ ")" }
 
