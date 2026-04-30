@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use domain::ast::{AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression, UnaryOperation};
+    use domain::ast::{
+        AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression, UnaryOperation,
+    };
     use domain::interface::type_checker::CccTypeChecker;
 
     use crate::type_checker::AstTypeChecker;

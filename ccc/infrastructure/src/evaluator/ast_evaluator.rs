@@ -1,4 +1,6 @@
-use domain::ast::{AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression, UnaryOperation};
+use domain::ast::{
+    AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression, UnaryOperation,
+};
 use domain::error::CccError;
 use domain::interface::evaluator::CccEvaluator;
 use domain::value::Value;

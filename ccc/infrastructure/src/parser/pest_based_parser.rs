@@ -1,7 +1,9 @@
 use pest::Parser as PestParserTrait;
 use pest_derive::Parser as PestDerive;
 
-use domain::ast::{AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression, UnaryOperation};
+use domain::ast::{
+    AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression, UnaryOperation,
+};
 use domain::error::CccError;
 use domain::interface::parser::CccParser;
 
