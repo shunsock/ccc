@@ -134,7 +134,7 @@ fn infer_function_return_type(
             require_type(name, &arg_types[0], &StaticType::List)?;
             Ok(StaticType::Integer)
         }
-        "sum" | "prod" => {
+        "sum" | "prod" | "mean" | "var" | "max" | "min" | "median" => {
             check_arg_count(name, arg_types, 1)?;
             require_type(name, &arg_types[0], &StaticType::List)?;
             Ok(StaticType::Unknown) // element type unknown at static level

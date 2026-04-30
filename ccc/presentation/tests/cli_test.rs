@@ -409,6 +409,220 @@ fn evaluate_sum_duration_divided() {
     result.success().stdout("9:00:00\n");
 }
 
+// --- mean / E ---
+
+#[test]
+fn evaluate_mean_integers() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("mean([1, 2, 3, 4, 5])").assert();
+
+    // Assert
+    result.success().stdout("3\n");
+}
+
+#[test]
+fn evaluate_mean_floats() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("mean([1.0, 2.0, 3.0])").assert();
+
+    // Assert
+    result.success().stdout("2\n");
+}
+
+#[test]
+fn evaluate_mean_duration() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("mean([0:10:00, 0:20:00, 0:30:00])").assert();
+
+    // Assert
+    result.success().stdout("0:20:00\n");
+}
+
+#[test]
+fn evaluate_mean_empty_fails() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("mean([])").assert();
+
+    // Assert
+    result.failure();
+}
+
+// --- var / V ---
+
+#[test]
+fn evaluate_var_integers() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("var([1, 2, 3, 4, 5])").assert();
+
+    // Assert
+    result.success().stdout("2\n");
+}
+
+#[test]
+fn evaluate_var_single_element() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("var([5])").assert();
+
+    // Assert
+    result.success().stdout("0\n");
+}
+
+#[test]
+fn evaluate_var_empty_fails() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("var([])").assert();
+
+    // Assert
+    result.failure();
+}
+
+// --- max ---
+
+#[test]
+fn evaluate_max_integers() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("max([3, 1, 4, 1, 5])").assert();
+
+    // Assert
+    result.success().stdout("5\n");
+}
+
+#[test]
+fn evaluate_max_duration() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("max([0:10:00, 0:30:00, 0:20:00])").assert();
+
+    // Assert
+    result.success().stdout("0:30:00\n");
+}
+
+#[test]
+fn evaluate_max_empty_fails() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("max([])").assert();
+
+    // Assert
+    result.failure();
+}
+
+// --- min ---
+
+#[test]
+fn evaluate_min_integers() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("min([3, 1, 4, 1, 5])").assert();
+
+    // Assert
+    result.success().stdout("1\n");
+}
+
+#[test]
+fn evaluate_min_duration() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("min([0:10:00, 0:30:00, 0:20:00])").assert();
+
+    // Assert
+    result.success().stdout("0:10:00\n");
+}
+
+#[test]
+fn evaluate_min_empty_fails() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("min([])").assert();
+
+    // Assert
+    result.failure();
+}
+
+// --- median ---
+
+#[test]
+fn evaluate_median_odd() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("median([3, 1, 2])").assert();
+
+    // Assert
+    result.success().stdout("2\n");
+}
+
+#[test]
+fn evaluate_median_even() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("median([1, 2, 3, 4])").assert();
+
+    // Assert
+    result.success().stdout("2.5\n");
+}
+
+#[test]
+fn evaluate_median_duration() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("median([0:10:00, 0:30:00, 0:20:00])").assert();
+
+    // Assert
+    result.success().stdout("0:20:00\n");
+}
+
+#[test]
+fn evaluate_median_empty_fails() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("median([])").assert();
+
+    // Assert
+    result.failure();
+}
+
 #[test]
 fn evaluate_prod() {
     // Arrange
