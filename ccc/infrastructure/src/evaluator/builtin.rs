@@ -21,6 +21,11 @@ pub fn call_builtin(name: &str, arguments: &[Value]) -> Result<Value, CccError> 
         "len" => list_len(arguments),
         "sum" => list_sum(arguments),
         "prod" => list_prod(arguments),
+        "mean" | "E" => list_mean(arguments),
+        "var" | "V" => list_var(arguments),
+        "max" => list_max(arguments),
+        "min" => list_min(arguments),
+        "median" => list_median(arguments),
         "head" => list_head(arguments),
         "tail" => list_tail(arguments),
         "DurationTime" => duration_time_constructor(arguments),
@@ -157,6 +162,152 @@ fn list_sum(arguments: &[Value]) -> Result<Value, CccError> {
         Some(Value::DurationTime(_)) => sum_durations(elements),
         Some(Value::Integer(_) | Value::Float(_)) => sum_numbers(elements),
         _ => Err(CccError::eval("sum: unsupported element type")),
+    }
+}
+
+fn expect_nonempty_list<'a>(name: &str, arguments: &'a [Value]) -> Result<&'a [Value], CccError> {
+    let elements = expect_single_list(name, arguments)?;
+    if elements.is_empty() {
+        return Err(CccError::eval(format!("{name}: empty list")));
+    }
+    Ok(elements)
+}
+
+fn collect_numbers(name: &str, elements: &[Value]) -> Result<Vec<f64>, CccError> {
+    elements
+        .iter()
+        .map(|e| match e {
+            Value::Integer(n) => Ok(*n as f64),
+            Value::Float(n) => Ok(*n),
+            _ => Err(CccError::eval(format!(
+                "{name}: list elements must be the same type"
+            ))),
+        })
+        .collect()
+}
+
+fn collect_seconds(name: &str, elements: &[Value]) -> Result<Vec<i64>, CccError> {
+    elements
+        .iter()
+        .map(|e| match e {
+            Value::DurationTime(s) => Ok(*s),
+            _ => Err(CccError::eval(format!(
+                "{name}: list elements must be the same type"
+            ))),
+        })
+        .collect()
+}
+
+fn collect_integers(name: &str, elements: &[Value]) -> Result<Vec<i64>, CccError> {
+    elements
+        .iter()
+        .map(|e| match e {
+            Value::Integer(n) => Ok(*n),
+            _ => Err(CccError::eval(format!(
+                "{name}: list elements must be the same type"
+            ))),
+        })
+        .collect()
+}
+
+fn list_mean(arguments: &[Value]) -> Result<Value, CccError> {
+    let elements = expect_nonempty_list("mean", arguments)?;
+
+    match elements.first() {
+        Some(Value::DurationTime(_)) => {
+            let secs = collect_seconds("mean", elements)?;
+            let total: i64 = secs.iter().sum();
+            Ok(Value::DurationTime(total / secs.len() as i64))
+        }
+        Some(Value::Integer(_) | Value::Float(_)) => {
+            let nums = collect_numbers("mean", elements)?;
+            let total: f64 = nums.iter().sum();
+            Ok(Value::Float(total / nums.len() as f64))
+        }
+        _ => Err(CccError::eval("mean: unsupported element type")),
+    }
+}
+
+fn list_var(arguments: &[Value]) -> Result<Value, CccError> {
+    let elements = expect_nonempty_list("var", arguments)?;
+
+    match elements.first() {
+        Some(Value::Integer(_) | Value::Float(_)) => {
+            let nums = collect_numbers("var", elements)?;
+            let n = nums.len() as f64;
+            let mean = nums.iter().sum::<f64>() / n;
+            let variance = nums.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n;
+            Ok(Value::Float(variance))
+        }
+        _ => Err(CccError::eval("var: unsupported element type")),
+    }
+}
+
+fn list_max(arguments: &[Value]) -> Result<Value, CccError> {
+    let elements = expect_nonempty_list("max", arguments)?;
+
+    match elements.first() {
+        Some(Value::DurationTime(_)) => {
+            let secs = collect_seconds("max", elements)?;
+            Ok(Value::DurationTime(secs.into_iter().max().unwrap()))
+        }
+        Some(Value::Integer(_)) => {
+            let ints = collect_integers("max", elements)?;
+            Ok(Value::Integer(ints.into_iter().max().unwrap()))
+        }
+        Some(Value::Float(_)) => {
+            let nums = collect_numbers("max", elements)?;
+            Ok(Value::Float(nums.into_iter().reduce(f64::max).unwrap()))
+        }
+        _ => Err(CccError::eval("max: unsupported element type")),
+    }
+}
+
+fn list_min(arguments: &[Value]) -> Result<Value, CccError> {
+    let elements = expect_nonempty_list("min", arguments)?;
+
+    match elements.first() {
+        Some(Value::DurationTime(_)) => {
+            let secs = collect_seconds("min", elements)?;
+            Ok(Value::DurationTime(secs.into_iter().min().unwrap()))
+        }
+        Some(Value::Integer(_)) => {
+            let ints = collect_integers("min", elements)?;
+            Ok(Value::Integer(ints.into_iter().min().unwrap()))
+        }
+        Some(Value::Float(_)) => {
+            let nums = collect_numbers("min", elements)?;
+            Ok(Value::Float(nums.into_iter().reduce(f64::min).unwrap()))
+        }
+        _ => Err(CccError::eval("min: unsupported element type")),
+    }
+}
+
+fn list_median(arguments: &[Value]) -> Result<Value, CccError> {
+    let elements = expect_nonempty_list("median", arguments)?;
+
+    match elements.first() {
+        Some(Value::DurationTime(_)) => {
+            let mut secs = collect_seconds("median", elements)?;
+            secs.sort();
+            let n = secs.len();
+            if n % 2 == 1 {
+                Ok(Value::DurationTime(secs[n / 2]))
+            } else {
+                Ok(Value::DurationTime((secs[n / 2 - 1] + secs[n / 2]) / 2))
+            }
+        }
+        Some(Value::Integer(_) | Value::Float(_)) => {
+            let mut nums = collect_numbers("median", elements)?;
+            nums.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            let n = nums.len();
+            if n % 2 == 1 {
+                Ok(Value::Float(nums[n / 2]))
+            } else {
+                Ok(Value::Float((nums[n / 2 - 1] + nums[n / 2]) / 2.0))
+            }
+        }
+        _ => Err(CccError::eval("median: unsupported element type")),
     }
 }
 
