@@ -43,6 +43,7 @@ impl PestBasedParser {
             Rule::term => Self::build_binary_expression(pair, Self::to_multiplicative_operation),
             Rule::power => Self::build_right_associative_expression(pair),
             Rule::unary => Self::build_unary(pair),
+            Rule::postfix => Self::build_postfix(pair),
             Rule::atom => Self::build_atom(pair),
             Rule::number => Self::build_number(pair),
             Rule::function_call => Self::build_function_call(pair),
@@ -137,6 +138,33 @@ impl PestBasedParser {
         } else {
             Self::build_expression(first)
         }
+    }
+
+    fn build_postfix(pair: pest::iterators::Pair<Rule>) -> Result<Expression, CccError> {
+        let mut inner = pair.into_inner();
+        let first = inner
+            .next()
+            .ok_or_else(|| CccError::parse("expected expression".to_string()))?;
+        let mut receiver = Self::build_expression(first)?;
+
+        // Desugar each .method(args) into FunctionCall { name, arguments: [receiver, ...args] }
+        for method_pair in inner {
+            let mut method_inner = method_pair.into_inner();
+            let name = method_inner
+                .next()
+                .ok_or_else(|| CccError::parse("expected method name".to_string()))?
+                .as_str()
+                .to_string();
+            let mut arguments = vec![receiver];
+            if let Some(args_pair) = method_inner.next() {
+                for arg in args_pair.into_inner() {
+                    arguments.push(Self::build_expression(arg)?);
+                }
+            }
+            receiver = Expression::FunctionCall { name, arguments };
+        }
+
+        Ok(receiver)
     }
 
     fn build_atom(pair: pest::iterators::Pair<Rule>) -> Result<Expression, CccError> {
@@ -335,6 +363,8 @@ impl PestBasedParser {
             Rule::term => "term",
             Rule::power => "expression",
             Rule::unary => "number, function call, list, or '('",
+            Rule::postfix => "number, function call, list, or '('",
+            Rule::method_call => ".method()",
             Rule::atom => "number, datetime, duration, function call, list, or '('",
             Rule::datetime_literal => "datetime (YYYY-MM-DDTHH:MM:SS)",
             Rule::timezone_offset => "timezone offset",
