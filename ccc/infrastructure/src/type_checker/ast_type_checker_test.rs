@@ -32,6 +32,82 @@ mod tests {
     }
 
     #[test]
+    fn list_homogeneous_integers_passes() {
+        // Arrange
+        let expr = Expression::List(vec![
+            Expression::Integer(1),
+            Expression::Integer(2),
+            Expression::Integer(3),
+        ]);
+
+        // Act & Assert
+        assert!(check(expr).is_ok());
+    }
+
+    #[test]
+    fn list_homogeneous_floats_passes() {
+        // Arrange
+        let expr = Expression::List(vec![Expression::Float(1.0), Expression::Float(2.0)]);
+
+        // Act & Assert
+        assert!(check(expr).is_ok());
+    }
+
+    #[test]
+    fn list_homogeneous_durations_passes() {
+        // Arrange
+        let expr = Expression::List(vec![
+            Expression::DurationTime {
+                hours: 0,
+                minutes: 10,
+                seconds: 0,
+            },
+            Expression::DurationTime {
+                hours: 0,
+                minutes: 20,
+                seconds: 0,
+            },
+        ]);
+
+        // Act & Assert
+        assert!(check(expr).is_ok());
+    }
+
+    #[test]
+    fn list_empty_passes() {
+        // Arrange
+        let expr = Expression::List(vec![]);
+
+        // Act & Assert
+        assert!(check(expr).is_ok());
+    }
+
+    #[test]
+    fn list_mixed_integer_float_is_error() {
+        // Arrange
+        let expr = Expression::List(vec![Expression::Integer(1), Expression::Float(2.0)]);
+
+        // Act & Assert
+        assert!(check(expr).is_err());
+    }
+
+    #[test]
+    fn list_mixed_integer_duration_is_error() {
+        // Arrange
+        let expr = Expression::List(vec![
+            Expression::Integer(1),
+            Expression::DurationTime {
+                hours: 0,
+                minutes: 10,
+                seconds: 0,
+            },
+        ]);
+
+        // Act & Assert
+        assert!(check(expr).is_err());
+    }
+
+    #[test]
     fn duration_literal_passes() {
         // Arrange & Act & Assert
         assert!(

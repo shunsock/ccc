@@ -17,7 +17,10 @@ fn infer_type(expression: &Expression) -> Result<StaticType, CccError> {
     match expression {
         Expression::Integer(_) => Ok(StaticType::Integer),
         Expression::Float(_) => Ok(StaticType::Float),
-        Expression::List(_) => Ok(StaticType::List),
+        Expression::List(elements) => {
+            let elem_type = infer_list_element_type(elements)?;
+            Ok(StaticType::List(elem_type.map(Box::new)))
+        }
         Expression::DurationTime { .. } => Ok(StaticType::DurationTime),
         Expression::DateTime { .. } => Ok(StaticType::DateTime),
 
@@ -53,6 +56,26 @@ fn infer_type(expression: &Expression) -> Result<StaticType, CccError> {
             infer_function_return_type(name, &arg_types)
         }
     }
+}
+
+/// Validate that all elements of a list share the same type and return it.
+/// Returns `None` for empty lists.
+fn infer_list_element_type(elements: &[Expression]) -> Result<Option<StaticType>, CccError> {
+    let first = match elements.first() {
+        None => return Ok(None),
+        Some(e) => e,
+    };
+    let expected = infer_type(first)?;
+    for (i, elem) in elements.iter().enumerate().skip(1) {
+        let actual = infer_type(elem)?;
+        if actual != expected {
+            return Err(CccError::type_check(format!(
+                "list elements must be the same type, expected {expected} at index 0 but found {actual} at index {}",
+                i
+            )));
+        }
+    }
+    Ok(Some(expected))
 }
 
 /// Determine the result type of a binary operation, or error if unsupported.
@@ -131,17 +154,17 @@ fn infer_function_return_type(
         // List functions
         "len" => {
             check_arg_count(name, arg_types, 1)?;
-            require_type(name, &arg_types[0], &StaticType::List)?;
+            require_list(name, &arg_types[0])?;
             Ok(StaticType::Integer)
         }
         "sum" | "prod" | "mean" | "var" | "max" | "min" | "median" => {
             check_arg_count(name, arg_types, 1)?;
-            require_type(name, &arg_types[0], &StaticType::List)?;
-            Ok(StaticType::Unknown) // element type unknown at static level
+            require_list(name, &arg_types[0])?;
+            Ok(StaticType::Unknown)
         }
         "head" | "tail" => {
             check_arg_count(name, arg_types, 1)?;
-            require_type(name, &arg_types[0], &StaticType::List)?;
+            require_list(name, &arg_types[0])?;
             Ok(StaticType::Unknown)
         }
 
@@ -220,6 +243,15 @@ fn require_numeric(name: &str, t: &StaticType) -> Result<(), CccError> {
         StaticType::Integer | StaticType::Float | StaticType::Unknown => Ok(()),
         _ => Err(CccError::type_check(format!(
             "{name}: expected numeric argument, got {t}"
+        ))),
+    }
+}
+
+fn require_list(name: &str, actual: &StaticType) -> Result<(), CccError> {
+    match actual {
+        StaticType::List(_) | StaticType::Unknown => Ok(()),
+        _ => Err(CccError::type_check(format!(
+            "{name}: expected list, got {actual}"
         ))),
     }
 }
