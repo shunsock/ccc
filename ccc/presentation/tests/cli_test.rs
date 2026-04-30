@@ -374,6 +374,42 @@ fn evaluate_sum_empty() {
 }
 
 #[test]
+fn evaluate_sum_duration() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("sum([10:00:00, 8:00:00])").assert();
+
+    // Assert
+    result.success().stdout("18:00:00\n");
+}
+
+#[test]
+fn evaluate_sum_duration_multiple() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("sum([1:00:00, 0:30:00, 0:15:00])").assert();
+
+    // Assert
+    result.success().stdout("1:45:00\n");
+}
+
+#[test]
+fn evaluate_sum_duration_divided() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("sum([10:00:00, 8:00:00])/2").assert();
+
+    // Assert
+    result.success().stdout("9:00:00\n");
+}
+
+#[test]
 fn evaluate_prod() {
     // Arrange
     let mut cmd = ccc();
