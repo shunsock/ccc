@@ -205,6 +205,44 @@ fn evaluate_power_right_associative() {
     result.success().stdout("512\n");
 }
 
+// --- ** operator ---
+
+#[test]
+fn evaluate_double_star_power() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("2 ** 3").assert();
+
+    // Assert
+    result.success().stdout("8\n");
+}
+
+#[test]
+fn evaluate_double_star_right_associative() {
+    // Arrange: 2**3**2 = 2**(3**2) = 2**9 = 512
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("2**3**2").assert();
+
+    // Assert
+    result.success().stdout("512\n");
+}
+
+#[test]
+fn evaluate_multiply_vs_double_star_precedence() {
+    // Arrange: 2 * 3 ** 2 = 2 * 9 = 18
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("2 * 3 ** 2").assert();
+
+    // Assert
+    result.success().stdout("18\n");
+}
+
 // --- Error cases ---
 
 #[test]
