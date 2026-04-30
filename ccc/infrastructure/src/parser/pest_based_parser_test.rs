@@ -726,6 +726,56 @@ mod tests {
     }
 
     #[test]
+    fn parse_duration_mm_ss_basic() {
+        // Arrange
+        let input = "10:00";
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(
+            result,
+            Expression::DurationTime {
+                hours: 0,
+                minutes: 10,
+                seconds: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn parse_duration_mm_ss_with_seconds() {
+        // Arrange
+        let input = "1:30";
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(
+            result,
+            Expression::DurationTime {
+                hours: 0,
+                minutes: 1,
+                seconds: 30,
+            }
+        );
+    }
+
+    #[test]
+    fn parse_duration_mm_ss_seconds_out_of_range_is_error() {
+        // Arrange
+        let parser = PestBasedParser;
+
+        // Act
+        let result = parser.parse("10:60");
+
+        // Assert
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn parse_duration_minutes_out_of_range_is_error() {
         // Arrange
         let parser = PestBasedParser;
