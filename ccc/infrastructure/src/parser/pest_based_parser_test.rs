@@ -234,6 +234,44 @@ mod tests {
     }
 
     #[test]
+    fn parse_double_star_power() {
+        // Arrange
+        let input = "2 ** 3";
+        let expected = Expression::BinaryOperation {
+            operator: BinaryOperation::Power,
+            left: Box::new(Expression::Integer(2)),
+            right: Box::new(Expression::Integer(3)),
+        };
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn parse_double_star_right_associative() {
+        // Arrange: 2**3**2 = 2**(3**2), NOT (2**3)**2
+        let input = "2 ** 3 ** 2";
+        let expected = Expression::BinaryOperation {
+            operator: BinaryOperation::Power,
+            left: Box::new(Expression::Integer(2)),
+            right: Box::new(Expression::BinaryOperation {
+                operator: BinaryOperation::Power,
+                left: Box::new(Expression::Integer(3)),
+                right: Box::new(Expression::Integer(2)),
+            }),
+        };
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn parse_power_right_associative() {
         // Arrange: 2^3^2 = 2^(3^2), NOT (2^3)^2
         let input = "2 ^ 3 ^ 2";
