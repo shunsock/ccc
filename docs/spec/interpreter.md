@@ -80,8 +80,8 @@ All accept a numeric argument (Integer or Float) and return Float.
 | `arccos(n)` | Arccosine |
 | `arctan(n)` | Arctangent |
 | `log(n)` | Natural logarithm |
-| `log2(n)` | Base-2 logarithm |
-| `log10(n)` | Base-10 logarithm |
+| `log(base, n)` | Logarithm with arbitrary base |
+| `ln(n)` | Natural logarithm (alias for log(n)) |
 | `floor(n)` | Floor |
 | `ceil(n)` | Ceiling |
 | `round(n)` | Round to nearest integer |

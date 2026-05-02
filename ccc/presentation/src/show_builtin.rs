@@ -51,12 +51,12 @@ const BUILTIN_CATEGORIES: &[BuiltinCategory] = &[
                 description: "Natural logarithm",
             },
             BuiltinEntry {
-                signature: "log2(x: int | float) -> float",
-                description: "Base-2 logarithm",
+                signature: "log(base: int | float, x: int | float) -> float",
+                description: "Logarithm with arbitrary base",
             },
             BuiltinEntry {
-                signature: "log10(x: int | float) -> float",
-                description: "Base-10 logarithm",
+                signature: "ln(x: int | float) -> float",
+                description: "Natural logarithm (alias for log(x))",
             },
             BuiltinEntry {
                 signature: "floor(x: int | float) -> float",

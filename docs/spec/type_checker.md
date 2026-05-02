@@ -59,10 +59,16 @@ Nested expressions in arguments are also type-checked.
 
 ### Math Functions
 
-`sqrt`, `sin`, `cos`, `tan`, `arcsin`, `arccos`, `arctan`, `log`, `log2`, `log10`, `floor`, `ceil`, `round`:
+`sqrt`, `sin`, `cos`, `tan`, `arcsin`, `arccos`, `arctan`, `ln`, `floor`, `ceil`, `round`:
 
 - Exactly 1 argument
 - Argument must be numeric (Integer, Float, or Unknown)
+
+`log`:
+
+- 1 or 2 arguments
+- All arguments must be numeric
+- 1 arg: natural logarithm, 2 args: logarithm with base (first arg)
 
 `abs`:
 

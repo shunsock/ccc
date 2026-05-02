@@ -140,7 +140,9 @@ All require a numeric argument (Integer or Float) and return Float.
 |----------|-------|--------|
 | `sqrt`, `sin`, `cos`, `tan` | numeric | Float |
 | `arcsin`, `arccos`, `arctan` | numeric | Float |
-| `log`, `log2`, `log10` | numeric | Float |
+| `log` (1 arg) | numeric | Float |
+| `log` (2 args) | numeric, numeric | Float |
+| `ln` | numeric | Float |
 | `floor`, `ceil`, `round` | numeric | Float |
 | `abs` | numeric | same as input |
 
