@@ -4,7 +4,7 @@ term = { power ~ (multiplicative_operator ~ power)* }
 
 power = { unary ~ (power_operator ~ unary)* }
 
-unary = { unary_operator? ~ postfix }
+unary = { unary_operator* ~ postfix }
 
 postfix = { atom ~ postfix_suffix* }
 
