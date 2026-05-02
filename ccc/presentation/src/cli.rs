@@ -15,4 +15,15 @@ pub struct Cli {
 pub enum Command {
     /// Start interactive REPL
     Repl,
+    /// Show information
+    Show {
+        #[command(subcommand)]
+        target: ShowTarget,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum ShowTarget {
+    /// List all built-in functions
+    Builtin,
 }

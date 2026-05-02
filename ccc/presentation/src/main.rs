@@ -1,5 +1,6 @@
 mod cli;
 mod input_mode;
+mod show_builtin;
 
 use std::io;
 
@@ -25,6 +26,9 @@ fn main() {
     let calculate = CalculateMathExpressionUsecase::new(parser, type_checker, evaluator);
 
     match mode {
+        InputMode::ShowBuiltin => {
+            show_builtin::print_builtin_list();
+        }
         InputMode::Repl => {
             let repl = InteractiveReplUsecase::new(calculate);
             if let Err(e) = repl.run() {

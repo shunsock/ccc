@@ -1,11 +1,13 @@
 use std::io::{self, IsTerminal};
 
-use crate::cli::{Cli, Command};
+use crate::cli::{Cli, Command, ShowTarget};
 
 /// Determines how the application should process input.
 pub enum InputMode {
     /// Interactive REPL session
     Repl,
+    /// Show built-in function list
+    ShowBuiltin,
     /// Evaluate a single expression from CLI arguments
     Expression(String),
     /// Read expressions from piped stdin, one per line
@@ -17,8 +19,12 @@ pub enum InputMode {
 }
 
 pub fn resolve_input_mode(cli: &Cli) -> InputMode {
-    if let Some(Command::Repl) = &cli.command {
-        return InputMode::Repl;
+    match &cli.command {
+        Some(Command::Repl) => return InputMode::Repl,
+        Some(Command::Show { target }) => match target {
+            ShowTarget::Builtin => return InputMode::ShowBuiltin,
+        },
+        None => {}
     }
 
     let has_args = !cli.expression.is_empty();
