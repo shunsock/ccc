@@ -22,7 +22,7 @@ pub fn call_builtin(name: &str, arguments: &[Value]) -> Result<Value, CccError> 
         "sum" => list_sum(arguments),
         "prod" => list_prod(arguments),
         "mean" => list_mean(arguments),
-        "var" => list_var(arguments),
+        "variance" => list_var(arguments),
         "max" => list_max(arguments),
         "min" => list_min(arguments),
         "median" => list_median(arguments),
@@ -227,11 +227,11 @@ fn list_mean(arguments: &[Value]) -> Result<Value, CccError> {
 }
 
 fn list_var(arguments: &[Value]) -> Result<Value, CccError> {
-    let elements = expect_nonempty_list("var", arguments)?;
+    let elements = expect_nonempty_list("variance", arguments)?;
 
     match elements.first() {
         Some(Value::Integer(_) | Value::Float(_)) => {
-            let nums = collect_numbers("var", elements)?;
+            let nums = collect_numbers("variance", elements)?;
             let n = nums.len() as f64;
             let mean = nums.iter().sum::<f64>() / n;
             let variance = nums.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n;

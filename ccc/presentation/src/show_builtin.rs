@@ -84,7 +84,7 @@ const BUILTIN_CATEGORIES: &[BuiltinCategory] = &[
                 description: "Mean of duration elements",
             },
             BuiltinEntry {
-                signature: "var(l: list[int | float]) -> float",
+                signature: "variance(l: list[int | float]) -> float",
                 description: "Variance of numeric elements",
             },
             BuiltinEntry {

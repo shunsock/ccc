@@ -201,7 +201,7 @@ fn infer_function_return_type(
             require_list(name, &arg_types[0])?;
             Ok(StaticType::Integer)
         }
-        "sum" | "prod" | "mean" | "var" | "max" | "min" | "median" => {
+        "sum" | "prod" | "mean" | "variance" | "max" | "min" | "median" => {
             check_arg_count(name, arg_types, 1)?;
             require_list(name, &arg_types[0])?;
             Ok(StaticType::Unknown)
