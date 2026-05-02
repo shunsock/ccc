@@ -49,6 +49,8 @@ cargo clippy
 
 ## Adding a New Built-in Function
 
+Function names must follow the [Naming Convention](spec/naming_convention.md). In short: regular functions use **snake_case**, constructors use **PascalCase**.
+
 1. Add the function name to the match in `ccc/infrastructure/src/evaluator/builtin.rs`
 2. Add type checking rules in `ccc/infrastructure/src/type_checker/ast_type_checker.rs`
 3. Add tests for both the evaluator and type checker
