@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document defines the naming rules for built-in functions. All new functions must follow these rules, and existing functions that violate them should be renamed (see #12).
+This document defines the naming rules for built-in functions. All new functions must follow these rules.
 
 ## Rules
 
@@ -45,7 +45,7 @@ Use descriptive names that read naturally. Abbreviations are acceptable only whe
 | `median` | `med` |
 | `arcsin` | `asin` |
 
-Exception: `sqrt`, `abs`, `sin`, `cos`, `tan`, `log`, `len`, `prod`, `var`, `max`, `min` are standard abbreviations widely understood in math and programming.
+Exception: `sqrt`, `abs`, `sin`, `cos`, `tan`, `log`, `len`, `prod`, `max`, `min` are standard abbreviations widely understood in math and programming.
 
 ### Avoid prefixes for categories
 
@@ -65,22 +65,11 @@ Type conversions use the `as` operator, not conversion functions.
 | `x as int` | `to_int(x)` |
 | `dt as timestamp` | `datetime_to_timestamp(dt)` |
 
-## Current Violations
-
-The following functions violate the naming convention and are tracked for renaming in #12:
-
-| Current Name | Issue | Expected Name |
-|-------------|-------|---------------|
-| `current_timestamp` | none (already compliant) | - |
-| `var` | ambiguous abbreviation | `variance` |
-
-Note: `var` is a standard abbreviation in statistics but could be confused with "variable" in programming contexts. Renaming to `variance` improves clarity.
-
 ## Reference: Complete Function List
 
 ### Regular Functions (snake_case)
 
-`sqrt`, `abs`, `sin`, `cos`, `tan`, `arcsin`, `arccos`, `arctan`, `log`, `log2`, `log10`, `floor`, `ceil`, `round`, `mean`, `var`, `max`, `min`, `median`, `len`, `sum`, `prod`, `head`, `tail`, `now`, `today`, `current_timestamp`
+`sqrt`, `abs`, `sin`, `cos`, `tan`, `arcsin`, `arccos`, `arctan`, `log`, `log2`, `log10`, `floor`, `ceil`, `round`, `mean`, `variance`, `max`, `min`, `median`, `len`, `sum`, `prod`, `head`, `tail`, `now`, `today`, `current_timestamp`
 
 ### Constructors (PascalCase)
 

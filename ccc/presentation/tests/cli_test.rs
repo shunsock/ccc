@@ -559,39 +559,39 @@ fn evaluate_mean_empty_fails() {
     result.failure();
 }
 
-// --- var / V ---
+// --- variance ---
 
 #[test]
-fn evaluate_var_integers() {
+fn evaluate_variance_integers() {
     // Arrange
     let mut cmd = ccc();
 
     // Act
-    let result = cmd.arg("var([1, 2, 3, 4, 5])").assert();
+    let result = cmd.arg("variance([1, 2, 3, 4, 5])").assert();
 
     // Assert
     result.success().stdout("2\n");
 }
 
 #[test]
-fn evaluate_var_single_element() {
+fn evaluate_variance_single_element() {
     // Arrange
     let mut cmd = ccc();
 
     // Act
-    let result = cmd.arg("var([5])").assert();
+    let result = cmd.arg("variance([5])").assert();
 
     // Assert
     result.success().stdout("0\n");
 }
 
 #[test]
-fn evaluate_var_empty_fails() {
+fn evaluate_variance_empty_fails() {
     // Arrange
     let mut cmd = ccc();
 
     // Act
-    let result = cmd.arg("var([])").assert();
+    let result = cmd.arg("variance([])").assert();
 
     // Assert
     result.failure();
@@ -1161,7 +1161,7 @@ fn show_builtin_contains_all_function_names() {
         "ceil",
         "round",
         "mean",
-        "var",
+        "variance",
         "max",
         "min",
         "median",
