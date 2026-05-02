@@ -1,3 +1,5 @@
+use std::ops::{Add, Mul};
+
 use domain::error::CccError;
 use domain::value::Value;
 
@@ -22,9 +24,9 @@ pub fn call_builtin(name: &str, arguments: &[Value]) -> Result<Value, CccError> 
         "sum" => list_sum(arguments),
         "prod" => list_prod(arguments),
         "mean" => list_mean(arguments),
-        "variance" => list_var(arguments),
-        "max" => list_max(arguments),
-        "min" => list_min(arguments),
+        "variance" => list_variance(arguments),
+        "max" => list_extremum("max", arguments, i64::max, f64::max, i64::max),
+        "min" => list_extremum("min", arguments, i64::min, f64::min, i64::min),
         "median" => list_median(arguments),
         "head" => list_head(arguments),
         "tail" => list_tail(arguments),
@@ -38,128 +40,35 @@ pub fn call_builtin(name: &str, arguments: &[Value]) -> Result<Value, CccError> 
     }
 }
 
-fn to_f64(value: &Value) -> Result<f64, CccError> {
-    match value {
-        Value::Integer(n) => Ok(*n as f64),
-        Value::Float(n) => Ok(*n),
-        Value::List(_) => Err(CccError::eval("expected number, got list")),
-        Value::DurationTime(_) => Err(CccError::eval("expected number, got duration")),
-        Value::DateTime { .. } => Err(CccError::eval("expected number, got datetime")),
-        Value::Timestamp(_) => Err(CccError::eval("expected number, got timestamp")),
-    }
-}
+// ---------------------------------------------------------------------------
+// Helpers: argument extraction
+// ---------------------------------------------------------------------------
 
-fn to_i64_strict(value: &Value, param_name: &str) -> Result<i64, CccError> {
-    match value {
-        Value::Integer(n) => Ok(*n),
-        _ => Err(CccError::eval(format!("{param_name}: expected integer"))),
-    }
-}
-
-fn duration_time_constructor(arguments: &[Value]) -> Result<Value, CccError> {
-    if arguments.len() < 3 || arguments.len() > 4 {
-        return Err(CccError::eval(format!(
-            "DurationTime expects 3 or 4 arguments (day, hour, minute, second) or (hour, minute, second), got {}",
-            arguments.len()
-        )));
-    }
-
-    let (days, hours, minutes, seconds) = if arguments.len() == 4 {
-        (
-            to_i64_strict(&arguments[0], "day")?,
-            to_i64_strict(&arguments[1], "hour")?,
-            to_i64_strict(&arguments[2], "minute")?,
-            to_i64_strict(&arguments[3], "second")?,
-        )
-    } else {
-        (
-            0,
-            to_i64_strict(&arguments[0], "hour")?,
-            to_i64_strict(&arguments[1], "minute")?,
-            to_i64_strict(&arguments[2], "second")?,
-        )
-    };
-
-    let total_seconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
-    Ok(Value::DurationTime(total_seconds))
-}
-
-fn unary_float_function(
-    name: &str,
-    arguments: &[Value],
-    function: fn(f64) -> f64,
-) -> Result<Value, CccError> {
+fn expect_single_arg<'a>(name: &str, arguments: &'a [Value]) -> Result<&'a Value, CccError> {
     if arguments.len() != 1 {
         return Err(CccError::eval(format!(
             "{name} expects 1 argument, got {}",
             arguments.len()
         )));
     }
-    let n = to_f64(&arguments[0])?;
-    Ok(Value::Float(function(n)))
+    Ok(&arguments[0])
+}
+
+fn expect_no_args(name: &str, arguments: &[Value]) -> Result<(), CccError> {
+    if !arguments.is_empty() {
+        return Err(CccError::eval(format!(
+            "{name} expects 0 arguments, got {}",
+            arguments.len()
+        )));
+    }
+    Ok(())
 }
 
 fn expect_single_list<'a>(name: &str, arguments: &'a [Value]) -> Result<&'a [Value], CccError> {
-    if arguments.len() != 1 {
-        return Err(CccError::eval(format!(
-            "{name} expects 1 argument, got {}",
-            arguments.len()
-        )));
-    }
-    match &arguments[0] {
-        Value::List(elements) => Ok(elements),
+    let arg = expect_single_arg(name, arguments)?;
+    match arg {
+        Value::List(elements) => Ok(elements.as_slice()),
         _ => Err(CccError::eval(format!("{name}: expected list"))),
-    }
-}
-
-fn list_len(arguments: &[Value]) -> Result<Value, CccError> {
-    let elements = expect_single_list("len", arguments)?;
-    Ok(Value::Integer(elements.len() as i64))
-}
-
-fn sum_durations(elements: &[Value]) -> Result<Value, CccError> {
-    let mut total_seconds: i64 = 0;
-    for elem in elements {
-        match elem {
-            Value::DurationTime(s) => total_seconds += s,
-            _ => return Err(CccError::eval("sum: list elements must be the same type")),
-        }
-    }
-    Ok(Value::DurationTime(total_seconds))
-}
-
-fn sum_numbers(elements: &[Value]) -> Result<Value, CccError> {
-    let mut has_float = false;
-    let mut int_sum: i64 = 0;
-    let mut float_sum: f64 = 0.0;
-    for elem in elements {
-        match elem {
-            Value::Integer(n) => {
-                int_sum += n;
-                float_sum += *n as f64;
-            }
-            Value::Float(n) => {
-                has_float = true;
-                float_sum += n;
-            }
-            _ => return Err(CccError::eval("sum: list elements must be the same type")),
-        }
-    }
-    if has_float {
-        Ok(Value::Float(float_sum))
-    } else {
-        Ok(Value::Integer(int_sum))
-    }
-}
-
-fn list_sum(arguments: &[Value]) -> Result<Value, CccError> {
-    let elements = expect_single_list("sum", arguments)?;
-
-    match elements.first() {
-        None => Ok(Value::Integer(0)),
-        Some(Value::DurationTime(_)) => sum_durations(elements),
-        Some(Value::Integer(_) | Value::Float(_)) => sum_numbers(elements),
-        _ => Err(CccError::eval("sum: unsupported element type")),
     }
 }
 
@@ -170,6 +79,43 @@ fn expect_nonempty_list<'a>(name: &str, arguments: &'a [Value]) -> Result<&'a [V
     }
     Ok(elements)
 }
+
+// ---------------------------------------------------------------------------
+// Helpers: value conversion
+// ---------------------------------------------------------------------------
+
+fn to_f64(value: &Value) -> Result<f64, CccError> {
+    match value {
+        Value::Integer(n) => Ok(*n as f64),
+        Value::Float(n) => Ok(*n),
+        _ => Err(CccError::eval(format!(
+            "expected number, got {}",
+            value_type_name(value)
+        ))),
+    }
+}
+
+fn to_i64_strict(value: &Value, param_name: &str) -> Result<i64, CccError> {
+    match value {
+        Value::Integer(n) => Ok(*n),
+        _ => Err(CccError::eval(format!("{param_name}: expected integer"))),
+    }
+}
+
+fn value_type_name(value: &Value) -> &'static str {
+    match value {
+        Value::Integer(_) => "integer",
+        Value::Float(_) => "float",
+        Value::List(_) => "list",
+        Value::DurationTime(_) => "duration",
+        Value::DateTime { .. } => "datetime",
+        Value::Timestamp(_) => "timestamp",
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers: list element collection
+// ---------------------------------------------------------------------------
 
 fn collect_numbers(name: &str, elements: &[Value]) -> Result<Vec<f64>, CccError> {
     elements
@@ -208,6 +154,107 @@ fn collect_integers(name: &str, elements: &[Value]) -> Result<Vec<i64>, CccError
         .collect()
 }
 
+/// Fold numeric list elements with an accumulator, preserving int/float distinction.
+fn fold_numbers(
+    name: &str,
+    elements: &[Value],
+    int_identity: i64,
+    float_identity: f64,
+    int_op: fn(i64, i64) -> i64,
+    float_op: fn(f64, f64) -> f64,
+) -> Result<Value, CccError> {
+    let mut has_float = false;
+    let mut int_acc = int_identity;
+    let mut float_acc = float_identity;
+
+    for elem in elements {
+        match elem {
+            Value::Integer(n) => {
+                int_acc = int_op(int_acc, *n);
+                float_acc = float_op(float_acc, *n as f64);
+            }
+            Value::Float(n) => {
+                has_float = true;
+                float_acc = float_op(float_acc, *n);
+            }
+            _ => {
+                return Err(CccError::eval(format!(
+                    "{name}: list elements must be numbers"
+                )));
+            }
+        }
+    }
+
+    if has_float {
+        Ok(Value::Float(float_acc))
+    } else {
+        Ok(Value::Integer(int_acc))
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers: time
+// ---------------------------------------------------------------------------
+
+fn current_epoch() -> Result<std::time::Duration, CccError> {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| CccError::eval(format!("system time error: {e}")))
+}
+
+// ---------------------------------------------------------------------------
+// Math functions
+// ---------------------------------------------------------------------------
+
+fn unary_float_function(
+    name: &str,
+    arguments: &[Value],
+    function: fn(f64) -> f64,
+) -> Result<Value, CccError> {
+    let arg = expect_single_arg(name, arguments)?;
+    let n = to_f64(arg)?;
+    Ok(Value::Float(function(n)))
+}
+
+fn unary_absolute(arguments: &[Value]) -> Result<Value, CccError> {
+    let arg = expect_single_arg("abs", arguments)?;
+    match arg {
+        Value::Integer(n) => Ok(Value::Integer(n.abs())),
+        Value::Float(n) => Ok(Value::Float(n.abs())),
+        _ => Err(CccError::eval(format!(
+            "abs: expected number, got {}",
+            value_type_name(arg)
+        ))),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// List functions
+// ---------------------------------------------------------------------------
+
+fn list_len(arguments: &[Value]) -> Result<Value, CccError> {
+    let elements = expect_single_list("len", arguments)?;
+    Ok(Value::Integer(elements.len() as i64))
+}
+
+fn list_sum(arguments: &[Value]) -> Result<Value, CccError> {
+    let elements = expect_single_list("sum", arguments)?;
+
+    match elements.first() {
+        None => Ok(Value::Integer(0)),
+        Some(Value::DurationTime(_)) => {
+            let secs = collect_seconds("sum", elements)?;
+            Ok(Value::DurationTime(secs.iter().sum()))
+        }
+        _ => fold_numbers("sum", elements, 0, 0.0, i64::wrapping_add, f64::add),
+    }
+}
+
+fn list_prod(arguments: &[Value]) -> Result<Value, CccError> {
+    let elements = expect_single_list("prod", arguments)?;
+    fold_numbers("prod", elements, 1, 1.0, i64::wrapping_mul, f64::mul)
+}
+
 fn list_mean(arguments: &[Value]) -> Result<Value, CccError> {
     let elements = expect_nonempty_list("mean", arguments)?;
 
@@ -217,67 +264,67 @@ fn list_mean(arguments: &[Value]) -> Result<Value, CccError> {
             let total: i64 = secs.iter().sum();
             Ok(Value::DurationTime(total / secs.len() as i64))
         }
-        Some(Value::Integer(_) | Value::Float(_)) => {
+        _ => {
             let nums = collect_numbers("mean", elements)?;
             let total: f64 = nums.iter().sum();
             Ok(Value::Float(total / nums.len() as f64))
         }
-        _ => Err(CccError::eval("mean: unsupported element type")),
     }
 }
 
-fn list_var(arguments: &[Value]) -> Result<Value, CccError> {
+fn list_variance(arguments: &[Value]) -> Result<Value, CccError> {
     let elements = expect_nonempty_list("variance", arguments)?;
-
-    match elements.first() {
-        Some(Value::Integer(_) | Value::Float(_)) => {
-            let nums = collect_numbers("variance", elements)?;
-            let n = nums.len() as f64;
-            let mean = nums.iter().sum::<f64>() / n;
-            let variance = nums.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n;
-            Ok(Value::Float(variance))
-        }
-        _ => Err(CccError::eval("var: unsupported element type")),
-    }
+    let nums = collect_numbers("variance", elements)?;
+    let n = nums.len() as f64;
+    let mean = nums.iter().sum::<f64>() / n;
+    let variance = nums.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n;
+    Ok(Value::Float(variance))
 }
 
-fn list_max(arguments: &[Value]) -> Result<Value, CccError> {
-    let elements = expect_nonempty_list("max", arguments)?;
+/// Compute max or min over a list, dispatching by element type.
+fn list_extremum(
+    name: &str,
+    arguments: &[Value],
+    int_reduce: fn(i64, i64) -> i64,
+    float_reduce: fn(f64, f64) -> f64,
+    sec_reduce: fn(i64, i64) -> i64,
+) -> Result<Value, CccError> {
+    let elements = expect_nonempty_list(name, arguments)?;
 
     match elements.first() {
         Some(Value::DurationTime(_)) => {
-            let secs = collect_seconds("max", elements)?;
-            Ok(Value::DurationTime(secs.into_iter().max().unwrap()))
+            let secs = collect_seconds(name, elements)?;
+            Ok(Value::DurationTime(
+                secs.into_iter().reduce(sec_reduce).unwrap(),
+            ))
         }
         Some(Value::Integer(_)) => {
-            let ints = collect_integers("max", elements)?;
-            Ok(Value::Integer(ints.into_iter().max().unwrap()))
+            let ints = collect_integers(name, elements)?;
+            Ok(Value::Integer(ints.into_iter().reduce(int_reduce).unwrap()))
         }
         Some(Value::Float(_)) => {
-            let nums = collect_numbers("max", elements)?;
-            Ok(Value::Float(nums.into_iter().reduce(f64::max).unwrap()))
+            let nums = collect_numbers(name, elements)?;
+            Ok(Value::Float(nums.into_iter().reduce(float_reduce).unwrap()))
         }
-        _ => Err(CccError::eval("max: unsupported element type")),
+        _ => Err(CccError::eval(format!("{name}: unsupported element type"))),
     }
 }
 
-fn list_min(arguments: &[Value]) -> Result<Value, CccError> {
-    let elements = expect_nonempty_list("min", arguments)?;
+fn median_sorted_f64(nums: &[f64]) -> f64 {
+    let n = nums.len();
+    if n % 2 == 1 {
+        nums[n / 2]
+    } else {
+        (nums[n / 2 - 1] + nums[n / 2]) / 2.0
+    }
+}
 
-    match elements.first() {
-        Some(Value::DurationTime(_)) => {
-            let secs = collect_seconds("min", elements)?;
-            Ok(Value::DurationTime(secs.into_iter().min().unwrap()))
-        }
-        Some(Value::Integer(_)) => {
-            let ints = collect_integers("min", elements)?;
-            Ok(Value::Integer(ints.into_iter().min().unwrap()))
-        }
-        Some(Value::Float(_)) => {
-            let nums = collect_numbers("min", elements)?;
-            Ok(Value::Float(nums.into_iter().reduce(f64::min).unwrap()))
-        }
-        _ => Err(CccError::eval("min: unsupported element type")),
+fn median_sorted_i64(secs: &[i64]) -> i64 {
+    let n = secs.len();
+    if n % 2 == 1 {
+        secs[n / 2]
+    } else {
+        (secs[n / 2 - 1] + secs[n / 2]) / 2
     }
 }
 
@@ -288,54 +335,13 @@ fn list_median(arguments: &[Value]) -> Result<Value, CccError> {
         Some(Value::DurationTime(_)) => {
             let mut secs = collect_seconds("median", elements)?;
             secs.sort();
-            let n = secs.len();
-            if n % 2 == 1 {
-                Ok(Value::DurationTime(secs[n / 2]))
-            } else {
-                Ok(Value::DurationTime((secs[n / 2 - 1] + secs[n / 2]) / 2))
-            }
+            Ok(Value::DurationTime(median_sorted_i64(&secs)))
         }
-        Some(Value::Integer(_) | Value::Float(_)) => {
+        _ => {
             let mut nums = collect_numbers("median", elements)?;
             nums.sort_by(|a, b| a.partial_cmp(b).unwrap());
-            let n = nums.len();
-            if n % 2 == 1 {
-                Ok(Value::Float(nums[n / 2]))
-            } else {
-                Ok(Value::Float((nums[n / 2 - 1] + nums[n / 2]) / 2.0))
-            }
+            Ok(Value::Float(median_sorted_f64(&nums)))
         }
-        _ => Err(CccError::eval("median: unsupported element type")),
-    }
-}
-
-fn list_prod(arguments: &[Value]) -> Result<Value, CccError> {
-    let elements = expect_single_list("prod", arguments)?;
-    let mut has_float = false;
-    let mut int_prod: i64 = 1;
-    let mut float_prod: f64 = 1.0;
-
-    for elem in elements {
-        match elem {
-            Value::Integer(n) => {
-                int_prod *= n;
-                float_prod *= *n as f64;
-            }
-            Value::Float(n) => {
-                has_float = true;
-                float_prod *= n;
-            }
-            Value::List(_) => return Err(CccError::eval("prod: list elements must be numbers")),
-            Value::DurationTime(_) | Value::DateTime { .. } | Value::Timestamp(_) => {
-                return Err(CccError::eval("prod: list elements must be numbers"));
-            }
-        }
-    }
-
-    if has_float {
-        Ok(Value::Float(float_prod))
-    } else {
-        Ok(Value::Integer(int_prod))
     }
 }
 
@@ -355,21 +361,36 @@ fn list_tail(arguments: &[Value]) -> Result<Value, CccError> {
     Ok(Value::List(elements[1..].to_vec()))
 }
 
-fn unary_absolute(arguments: &[Value]) -> Result<Value, CccError> {
-    if arguments.len() != 1 {
+// ---------------------------------------------------------------------------
+// Constructors
+// ---------------------------------------------------------------------------
+
+fn duration_time_constructor(arguments: &[Value]) -> Result<Value, CccError> {
+    if arguments.len() < 3 || arguments.len() > 4 {
         return Err(CccError::eval(format!(
-            "abs expects 1 argument, got {}",
+            "DurationTime expects 3 or 4 arguments (day, hour, minute, second) or (hour, minute, second), got {}",
             arguments.len()
         )));
     }
-    match &arguments[0] {
-        Value::Integer(n) => Ok(Value::Integer(n.abs())),
-        Value::Float(n) => Ok(Value::Float(n.abs())),
-        Value::List(_) => Err(CccError::eval("abs: expected number, got list")),
-        Value::DurationTime(_) => Err(CccError::eval("abs: expected number, got duration")),
-        Value::DateTime { .. } => Err(CccError::eval("abs: expected number, got datetime")),
-        Value::Timestamp(_) => Err(CccError::eval("abs: expected number, got timestamp")),
-    }
+
+    let (days, hours, minutes, seconds) = if arguments.len() == 4 {
+        (
+            to_i64_strict(&arguments[0], "day")?,
+            to_i64_strict(&arguments[1], "hour")?,
+            to_i64_strict(&arguments[2], "minute")?,
+            to_i64_strict(&arguments[3], "second")?,
+        )
+    } else {
+        (
+            0,
+            to_i64_strict(&arguments[0], "hour")?,
+            to_i64_strict(&arguments[1], "minute")?,
+            to_i64_strict(&arguments[2], "second")?,
+        )
+    };
+
+    let total_seconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
+    Ok(Value::DurationTime(total_seconds))
 }
 
 fn datetime_constructor(arguments: &[Value]) -> Result<Value, CccError> {
@@ -403,34 +424,23 @@ fn datetime_constructor(arguments: &[Value]) -> Result<Value, CccError> {
 
     Ok(Value::DateTime {
         epoch_seconds,
-        offset_seconds: 0, // Constructor defaults to UTC
+        offset_seconds: 0,
     })
 }
 
 fn timestamp_constructor(arguments: &[Value]) -> Result<Value, CccError> {
-    if arguments.len() != 1 {
-        return Err(CccError::eval(format!(
-            "Timestamp expects 1 argument, got {}",
-            arguments.len()
-        )));
-    }
-    match &arguments[0] {
-        Value::Integer(n) => Ok(Value::Timestamp(*n as f64)),
-        Value::Float(n) => Ok(Value::Timestamp(*n)),
-        _ => Err(CccError::eval("Timestamp: expected integer or float")),
-    }
+    let arg = expect_single_arg("Timestamp", arguments)?;
+    let n = to_f64(arg)?;
+    Ok(Value::Timestamp(n))
 }
 
+// ---------------------------------------------------------------------------
+// Time utility functions
+// ---------------------------------------------------------------------------
+
 fn now_function(arguments: &[Value]) -> Result<Value, CccError> {
-    if !arguments.is_empty() {
-        return Err(CccError::eval(format!(
-            "now expects 0 arguments, got {}",
-            arguments.len()
-        )));
-    }
-    let epoch = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|e| CccError::eval(format!("system time error: {e}")))?;
+    expect_no_args("now", arguments)?;
+    let epoch = current_epoch()?;
     Ok(Value::DateTime {
         epoch_seconds: epoch.as_secs() as i64,
         offset_seconds: 0,
@@ -438,17 +448,9 @@ fn now_function(arguments: &[Value]) -> Result<Value, CccError> {
 }
 
 fn today_function(arguments: &[Value]) -> Result<Value, CccError> {
-    if !arguments.is_empty() {
-        return Err(CccError::eval(format!(
-            "today expects 0 arguments, got {}",
-            arguments.len()
-        )));
-    }
-    let epoch = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|e| CccError::eval(format!("system time error: {e}")))?;
+    expect_no_args("today", arguments)?;
+    let epoch = current_epoch()?;
     let secs = epoch.as_secs() as i64;
-    // Truncate to day boundary
     let day_seconds = secs - (secs % 86400);
     Ok(Value::DateTime {
         epoch_seconds: day_seconds,
@@ -457,14 +459,7 @@ fn today_function(arguments: &[Value]) -> Result<Value, CccError> {
 }
 
 fn current_timestamp_function(arguments: &[Value]) -> Result<Value, CccError> {
-    if !arguments.is_empty() {
-        return Err(CccError::eval(format!(
-            "current_timestamp expects 0 arguments, got {}",
-            arguments.len()
-        )));
-    }
-    let epoch = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|e| CccError::eval(format!("system time error: {e}")))?;
+    expect_no_args("current_timestamp", arguments)?;
+    let epoch = current_epoch()?;
     Ok(Value::Timestamp(epoch.as_secs_f64()))
 }
