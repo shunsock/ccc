@@ -1253,11 +1253,10 @@ mod tests {
     }
 
     #[test]
-    fn eval_to_timestamp_from_datetime() {
-        // Arrange: to_timestamp(DateTime(2026,1,1,0,0,0))
-        let expression = Expression::FunctionCall {
-            name: "datetime_to_timestamp".to_string(),
-            arguments: vec![Expression::FunctionCall {
+    fn cast_datetime_to_timestamp() {
+        // Arrange: DateTime(2026,1,1,0,0,0) as timestamp
+        let expression = Expression::TypeCast {
+            operand: Box::new(Expression::FunctionCall {
                 name: "DateTime".to_string(),
                 arguments: vec![
                     Expression::Integer(2026),
@@ -1267,7 +1266,8 @@ mod tests {
                     Expression::Integer(0),
                     Expression::Integer(0),
                 ],
-            }],
+            }),
+            target_type: CastTargetType::Timestamp,
         };
 
         // Act
@@ -1282,14 +1282,14 @@ mod tests {
     }
 
     #[test]
-    fn eval_to_datetime_from_timestamp() {
-        // Arrange: to_datetime(Timestamp(0))
-        let expression = Expression::FunctionCall {
-            name: "timestamp_to_datetime".to_string(),
-            arguments: vec![Expression::FunctionCall {
+    fn cast_timestamp_to_datetime() {
+        // Arrange: Timestamp(0) as datetime
+        let expression = Expression::TypeCast {
+            operand: Box::new(Expression::FunctionCall {
                 name: "Timestamp".to_string(),
                 arguments: vec![Expression::Integer(0)],
-            }],
+            }),
+            target_type: CastTargetType::DateTime,
         };
 
         // Act
@@ -1301,33 +1301,6 @@ mod tests {
             Value::DateTime {
                 epoch_seconds: 0,
                 offset_seconds: 0,
-            }
-        );
-    }
-
-    #[test]
-    fn eval_to_datetime_with_timezone_offset() {
-        // Arrange: to_datetime(Timestamp(0), 9)
-        let expression = Expression::FunctionCall {
-            name: "timestamp_to_datetime".to_string(),
-            arguments: vec![
-                Expression::FunctionCall {
-                    name: "Timestamp".to_string(),
-                    arguments: vec![Expression::Integer(0)],
-                },
-                Expression::Integer(9),
-            ],
-        };
-
-        // Act
-        let result = eval(expression).unwrap();
-
-        // Assert
-        assert_eq!(
-            result,
-            Value::DateTime {
-                epoch_seconds: 0,
-                offset_seconds: 9 * 3600,
             }
         );
     }
@@ -1667,12 +1640,10 @@ mod tests {
 
     #[test]
     fn eval_round_trip_datetime_timestamp() {
-        // Arrange: to_datetime(to_timestamp(DateTime(2026,6,15,12,30,0)))
-        let expression = Expression::FunctionCall {
-            name: "timestamp_to_datetime".to_string(),
-            arguments: vec![Expression::FunctionCall {
-                name: "datetime_to_timestamp".to_string(),
-                arguments: vec![Expression::FunctionCall {
+        // Arrange: (DateTime(2026,6,15,12,30,0) as timestamp) as datetime
+        let expression = Expression::TypeCast {
+            operand: Box::new(Expression::TypeCast {
+                operand: Box::new(Expression::FunctionCall {
                     name: "DateTime".to_string(),
                     arguments: vec![
                         Expression::Integer(2026),
@@ -1682,8 +1653,10 @@ mod tests {
                         Expression::Integer(30),
                         Expression::Integer(0),
                     ],
-                }],
-            }],
+                }),
+                target_type: CastTargetType::Timestamp,
+            }),
+            target_type: CastTargetType::DateTime,
         };
 
         // Act

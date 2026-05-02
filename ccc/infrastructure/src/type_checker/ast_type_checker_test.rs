@@ -616,11 +616,10 @@ mod tests {
     }
 
     #[test]
-    fn datetime_to_timestamp_with_datetime_passes() {
+    fn cast_datetime_to_timestamp_passes() {
         // Arrange
-        let expr = Expression::FunctionCall {
-            name: "datetime_to_timestamp".to_string(),
-            arguments: vec![Expression::DateTime {
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::DateTime {
                 year: 2026,
                 month: 1,
                 day: 1,
@@ -628,7 +627,8 @@ mod tests {
                 minute: 0,
                 second: 0,
                 offset_seconds: 0,
-            }],
+            }),
+            target_type: CastTargetType::Timestamp,
         };
 
         // Act & Assert
@@ -636,11 +636,38 @@ mod tests {
     }
 
     #[test]
-    fn datetime_to_timestamp_with_integer_is_error() {
+    fn cast_timestamp_to_datetime_passes() {
         // Arrange
-        let expr = Expression::FunctionCall {
-            name: "datetime_to_timestamp".to_string(),
-            arguments: vec![Expression::Integer(42)],
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::FunctionCall {
+                name: "Timestamp".to_string(),
+                arguments: vec![Expression::Integer(0)],
+            }),
+            target_type: CastTargetType::DateTime,
+        };
+
+        // Act & Assert
+        assert!(check(expr).is_ok());
+    }
+
+    #[test]
+    fn cast_integer_to_timestamp_is_error() {
+        // Arrange
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::Integer(42)),
+            target_type: CastTargetType::Timestamp,
+        };
+
+        // Act & Assert
+        assert!(check(expr).is_err());
+    }
+
+    #[test]
+    fn cast_integer_to_datetime_is_error() {
+        // Arrange
+        let expr = Expression::TypeCast {
+            operand: Box::new(Expression::Integer(42)),
+            target_type: CastTargetType::DateTime,
         };
 
         // Act & Assert

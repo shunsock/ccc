@@ -13,7 +13,7 @@ postfix_suffix = { method_call | type_cast }
 method_call = { "." ~ identifier ~ "(" ~ arguments ~ ")" }
 
 type_cast = { "as" ~ cast_type }
-cast_type = @{ "int" | "float" }
+cast_type = @{ "int" | "float" | "timestamp" | "datetime" }
 
 atom = { function_call | datetime_literal | duration_literal | number | list | "(" ~ expression ~ ")" }
 

@@ -282,6 +282,23 @@ fn evaluate_type_cast(value: &Value, target_type: &CastTargetType) -> Result<Val
             let n = to_f64(value)?;
             Ok(Value::Float(n))
         }
+        CastTargetType::Timestamp => match value {
+            Value::DateTime { epoch_seconds, .. } => Ok(Value::Timestamp(*epoch_seconds as f64)),
+            _ => Err(CccError::eval(format!(
+                "cannot cast {} to timestamp",
+                type_name(value)
+            ))),
+        },
+        CastTargetType::DateTime => match value {
+            Value::Timestamp(ts) => Ok(Value::DateTime {
+                epoch_seconds: *ts as i64,
+                offset_seconds: 0,
+            }),
+            _ => Err(CccError::eval(format!(
+                "cannot cast {} to datetime",
+                type_name(value)
+            ))),
+        },
     }
 }
 

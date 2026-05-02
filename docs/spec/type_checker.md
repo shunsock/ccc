@@ -93,18 +93,19 @@ Nested expressions in arguments are also type-checked.
 - Exactly 1 argument
 - Argument must be numeric
 
-### Time Converters
+### Type Cast (`as`)
 
-`datetime_to_timestamp`:
+The `as` operator validates the following conversions:
 
-- Exactly 1 argument
-- Argument must be DateTime
+- Integer/Float → `int` or `float` (numeric casts)
+- DateTime → `timestamp`
+- Timestamp → `datetime`
 
-`timestamp_to_datetime`:
+Other combinations produce a type error:
 
-- 1 or 2 arguments
-- First argument must be Timestamp
-- Second argument (optional) must be Integer
+```
+1 as timestamp   → error: cannot cast integer to timestamp
+```
 
 ### Time Utilities
 
