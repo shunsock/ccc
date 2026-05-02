@@ -164,13 +164,18 @@ All require a numeric argument (Integer or Float) and return Float.
 | `DateTime` | 6 Integers (year, month, day, hour, minute, second) | DateTime |
 | `Timestamp` | 1 numeric | Timestamp |
 
-### Time Converters
+### Type Cast (`as`)
 
-| Function | Arguments | Output |
-|----------|-----------|--------|
-| `datetime_to_timestamp` | DateTime | Timestamp |
-| `timestamp_to_datetime` | Timestamp | DateTime |
-| `timestamp_to_datetime` | Timestamp, Integer (offset hours) | DateTime |
+The `as` operator performs explicit type conversions:
+
+| Source | Target | Behavior |
+|--------|--------|----------|
+| Integer | Float | Widen to float |
+| Float | Integer | Truncate toward zero |
+| DateTime | Timestamp | Convert to epoch seconds |
+| Timestamp | DateTime | Convert to UTC datetime |
+
+Other combinations (e.g., `int as timestamp`, `duration as int`) produce a type error.
 
 ### Time Utilities
 

@@ -54,17 +54,7 @@ fn infer_type(expression: &Expression) -> Result<StaticType, CccError> {
             target_type,
         } => {
             let operand_type = infer_type(operand)?;
-            match operand_type {
-                StaticType::Integer | StaticType::Float | StaticType::Unknown => {
-                    match target_type {
-                        CastTargetType::Integer => Ok(StaticType::Integer),
-                        CastTargetType::Float => Ok(StaticType::Float),
-                    }
-                }
-                _ => Err(CccError::type_check(format!(
-                    "cannot cast {operand_type} with 'as'"
-                ))),
-            }
+            infer_cast_type(&operand_type, target_type)
         }
 
         Expression::FunctionCall { name, arguments } => {
@@ -94,6 +84,42 @@ fn infer_list_element_type(elements: &[Expression]) -> Result<Option<StaticType>
         }
     }
     Ok(Some(expected))
+}
+
+/// Determine the result type of a type cast, or error if unsupported.
+fn infer_cast_type(
+    operand_type: &StaticType,
+    target_type: &CastTargetType,
+) -> Result<StaticType, CccError> {
+    match (operand_type, target_type) {
+        // Numeric casts
+        (StaticType::Integer | StaticType::Float, CastTargetType::Integer) => {
+            Ok(StaticType::Integer)
+        }
+        (StaticType::Integer | StaticType::Float, CastTargetType::Float) => Ok(StaticType::Float),
+        // DateTime → Timestamp
+        (StaticType::DateTime, CastTargetType::Timestamp) => Ok(StaticType::Timestamp),
+        // Timestamp → DateTime
+        (StaticType::Timestamp, CastTargetType::DateTime) => Ok(StaticType::DateTime),
+        // Unknown passes through
+        (StaticType::Unknown, target) => match target {
+            CastTargetType::Integer => Ok(StaticType::Integer),
+            CastTargetType::Float => Ok(StaticType::Float),
+            CastTargetType::Timestamp => Ok(StaticType::Timestamp),
+            CastTargetType::DateTime => Ok(StaticType::DateTime),
+        },
+        _ => {
+            let target_name = match target_type {
+                CastTargetType::Integer => "int",
+                CastTargetType::Float => "float",
+                CastTargetType::Timestamp => "timestamp",
+                CastTargetType::DateTime => "datetime",
+            };
+            Err(CccError::type_check(format!(
+                "cannot cast {operand_type} to {target_name}"
+            )))
+        }
+    }
 }
 
 /// Determine the result type of a binary operation, or error if unsupported.
@@ -212,26 +238,6 @@ fn infer_function_return_type(
             Ok(StaticType::Timestamp)
         }
 
-        // Conversion functions
-        "datetime_to_timestamp" => {
-            check_arg_count(name, arg_types, 1)?;
-            require_type(name, &arg_types[0], &StaticType::DateTime)?;
-            Ok(StaticType::Timestamp)
-        }
-        "timestamp_to_datetime" => {
-            if arg_types.is_empty() || arg_types.len() > 2 {
-                return Err(CccError::type_check(format!(
-                    "timestamp_to_datetime expects 1-2 arguments, got {}",
-                    arg_types.len()
-                )));
-            }
-            require_type(name, &arg_types[0], &StaticType::Timestamp)?;
-            if arg_types.len() == 2 {
-                require_type_at(name, &arg_types[1], &StaticType::Integer, 1)?;
-            }
-            Ok(StaticType::DateTime)
-        }
-
         // Time utility functions (zero arguments)
         "now" | "today" => {
             check_arg_count(name, arg_types, 0)?;
@@ -271,16 +277,6 @@ fn require_list(name: &str, actual: &StaticType) -> Result<(), CccError> {
         _ => Err(CccError::type_check(format!(
             "{name}: expected list, got {actual}"
         ))),
-    }
-}
-
-fn require_type(name: &str, actual: &StaticType, expected: &StaticType) -> Result<(), CccError> {
-    if actual == expected || *actual == StaticType::Unknown {
-        Ok(())
-    } else {
-        Err(CccError::type_check(format!(
-            "{name}: expected {expected}, got {actual}"
-        )))
     }
 }
 

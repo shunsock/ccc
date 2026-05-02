@@ -109,13 +109,14 @@ All accept a numeric argument (Integer or Float) and return Float.
 | `DateTime(y, mo, d, h, mi, s)` | 6 Integers | DateTime in UTC |
 | `Timestamp(n)` | 1 numeric | Unix timestamp |
 
-### Time Converters
+### Type Cast (`as`)
 
-| Function | Arguments | Description |
-|----------|-----------|-------------|
-| `datetime_to_timestamp(dt)` | DateTime | Convert to Unix timestamp |
-| `timestamp_to_datetime(ts)` | Timestamp | Convert to DateTime (UTC) |
-| `timestamp_to_datetime(ts, offset)` | Timestamp, Integer | Convert with timezone offset (hours) |
+| Expression | Description |
+|-----------|-------------|
+| `n as float` | Integer to float |
+| `n as int` | Float to integer (truncate toward zero) |
+| `dt as timestamp` | DateTime to Unix timestamp |
+| `ts as datetime` | Timestamp to UTC DateTime |
 
 ### Time Utilities
 

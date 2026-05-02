@@ -133,17 +133,20 @@ ccc "2025-12-25T15:30:00+09:00"
 # 2025-12-25T15:30:00+09:00
 ```
 
-## Timestamp Operations
+## Type Cast (`as`)
 
 ```bash
-ccc "datetime_to_timestamp(2025-12-25T00:00:00Z)"
+ccc "3 as float"
+# 3
+
+ccc "3.7 as int"
+# 3
+
+ccc "2025-12-25T00:00:00Z as timestamp"
 # 1766620800
 
-ccc "timestamp_to_datetime(Timestamp(1766620800))"
+ccc "Timestamp(1766620800) as datetime"
 # 2025-12-25T00:00:00Z
-
-ccc "timestamp_to_datetime(Timestamp(1766620800), 9)"
-# 2025-12-25T09:00:00+09:00
 ```
 
 ## Time Utility Functions

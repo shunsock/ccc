@@ -31,8 +31,6 @@ pub fn call_builtin(name: &str, arguments: &[Value]) -> Result<Value, CccError> 
         "DurationTime" => duration_time_constructor(arguments),
         "DateTime" => datetime_constructor(arguments),
         "Timestamp" => timestamp_constructor(arguments),
-        "datetime_to_timestamp" => datetime_to_timestamp(arguments),
-        "timestamp_to_datetime" => timestamp_to_datetime(arguments),
         "now" => now_function(arguments),
         "today" => today_function(arguments),
         "current_timestamp" => current_timestamp_function(arguments),
@@ -421,48 +419,6 @@ fn timestamp_constructor(arguments: &[Value]) -> Result<Value, CccError> {
         Value::Float(n) => Ok(Value::Timestamp(*n)),
         _ => Err(CccError::eval("Timestamp: expected integer or float")),
     }
-}
-
-fn datetime_to_timestamp(arguments: &[Value]) -> Result<Value, CccError> {
-    if arguments.len() != 1 {
-        return Err(CccError::eval(format!(
-            "datetime_to_timestamp expects 1 argument, got {}",
-            arguments.len()
-        )));
-    }
-    match &arguments[0] {
-        Value::DateTime { epoch_seconds, .. } => Ok(Value::Timestamp(*epoch_seconds as f64)),
-        _ => Err(CccError::eval("datetime_to_timestamp: expected datetime")),
-    }
-}
-
-fn timestamp_to_datetime(arguments: &[Value]) -> Result<Value, CccError> {
-    if arguments.is_empty() || arguments.len() > 2 {
-        return Err(CccError::eval(format!(
-            "timestamp_to_datetime expects 1-2 arguments, got {}",
-            arguments.len()
-        )));
-    }
-    let ts = match &arguments[0] {
-        Value::Timestamp(n) => *n,
-        _ => return Err(CccError::eval("timestamp_to_datetime: expected timestamp")),
-    };
-    let offset_seconds = if arguments.len() == 2 {
-        match &arguments[1] {
-            Value::Integer(hours) => (*hours as i32) * 3600,
-            _ => {
-                return Err(CccError::eval(
-                    "timestamp_to_datetime: timezone offset must be integer",
-                ));
-            }
-        }
-    } else {
-        0
-    };
-    Ok(Value::DateTime {
-        epoch_seconds: ts as i64,
-        offset_seconds,
-    })
 }
 
 fn now_function(arguments: &[Value]) -> Result<Value, CccError> {

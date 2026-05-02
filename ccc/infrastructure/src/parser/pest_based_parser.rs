@@ -203,6 +203,8 @@ impl PestBasedParser {
         let target_type = match cast_type_pair.as_str() {
             "int" => CastTargetType::Integer,
             "float" => CastTargetType::Float,
+            "timestamp" => CastTargetType::Timestamp,
+            "datetime" => CastTargetType::DateTime,
             other => {
                 return Err(CccError::parse(format!(
                     "unsupported cast target type: {other}"

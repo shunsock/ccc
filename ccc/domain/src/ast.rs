@@ -3,6 +3,8 @@
 pub enum CastTargetType {
     Integer,
     Float,
+    Timestamp,
+    DateTime,
 }
 
 /// Binary operators.
