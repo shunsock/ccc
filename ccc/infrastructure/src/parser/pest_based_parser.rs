@@ -120,26 +120,36 @@ impl PestBasedParser {
 
     fn build_unary(pair: pest::iterators::Pair<Rule>) -> Result<Expression, CccError> {
         let mut inner = pair.into_inner();
-        let first = inner
+
+        // Collect unary operators (zero or more)
+        let mut operators = Vec::new();
+        while let Some(pair) = inner.peek() {
+            if pair.as_rule() == Rule::unary_operator {
+                let op_pair = inner.next().unwrap();
+                let operator = match op_pair.as_str() {
+                    "-" => UnaryOperation::Negate,
+                    _ => UnaryOperation::Positive,
+                };
+                operators.push(operator);
+            } else {
+                break;
+            }
+        }
+
+        let operand_pair = inner
             .next()
             .ok_or_else(|| CccError::parse("expected expression".to_string()))?;
+        let mut result = Self::build_expression(operand_pair)?;
 
-        if first.as_rule() == Rule::unary_operator {
-            let operand_pair = inner.next().ok_or_else(|| {
-                CccError::parse("expected operand after unary operator".to_string())
-            })?;
-            let operator = match first.as_str() {
-                "-" => UnaryOperation::Negate,
-                _ => UnaryOperation::Positive,
-            };
-            let operand = Self::build_expression(operand_pair)?;
-            Ok(Expression::UnaryOperation {
+        // Wrap from innermost to outermost
+        for operator in operators.into_iter().rev() {
+            result = Expression::UnaryOperation {
                 operator,
-                operand: Box::new(operand),
-            })
-        } else {
-            Self::build_expression(first)
+                operand: Box::new(result),
+            };
         }
+
+        Ok(result)
     }
 
     fn build_postfix(pair: pest::iterators::Pair<Rule>) -> Result<Expression, CccError> {

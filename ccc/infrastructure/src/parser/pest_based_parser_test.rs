@@ -346,6 +346,47 @@ mod tests {
         assert_eq!(result, expected);
     }
 
+    #[test]
+    fn parse_double_negate() {
+        // Arrange: --2000 → UnaryOperation(-, UnaryOperation(-, 2000))
+        let input = "- -2000";
+        let expected = Expression::UnaryOperation {
+            operator: UnaryOperation::Negate,
+            operand: Box::new(Expression::UnaryOperation {
+                operator: UnaryOperation::Negate,
+                operand: Box::new(Expression::Integer(2000)),
+            }),
+        };
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn parse_triple_negate() {
+        // Arrange: - - -3 → Negate(Negate(Negate(3)))
+        let input = "- - -3";
+        let expected = Expression::UnaryOperation {
+            operator: UnaryOperation::Negate,
+            operand: Box::new(Expression::UnaryOperation {
+                operator: UnaryOperation::Negate,
+                operand: Box::new(Expression::UnaryOperation {
+                    operator: UnaryOperation::Negate,
+                    operand: Box::new(Expression::Integer(3)),
+                }),
+            }),
+        };
+
+        // Act
+        let result = parse_expr(input);
+
+        // Assert
+        assert_eq!(result, expected);
+    }
+
     // --- Parentheses ---
 
     #[test]

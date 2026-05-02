@@ -127,6 +127,54 @@ fn evaluate_negative_unary() {
     result.success().stdout("-2\n");
 }
 
+#[test]
+fn evaluate_double_negate() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.args(["--", "- -2000"]).assert();
+
+    // Assert
+    result.success().stdout("2000\n");
+}
+
+#[test]
+fn evaluate_triple_negate() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.args(["--", "- - -3"]).assert();
+
+    // Assert
+    result.success().stdout("-3\n");
+}
+
+#[test]
+fn evaluate_double_negate_in_expression() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.args(["--", "5 + - -3"]).assert();
+
+    // Assert
+    result.success().stdout("8\n");
+}
+
+#[test]
+fn evaluate_double_negate_float() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.args(["--", "- -1.5"]).assert();
+
+    // Assert
+    result.success().stdout("1.5\n");
+}
+
 // --- Space-separated expression ---
 
 #[test]
