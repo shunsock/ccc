@@ -183,10 +183,23 @@ fn infer_function_return_type(
 ) -> Result<StaticType, CccError> {
     match name {
         // Math functions: require numeric input, return Float
-        "sqrt" | "sin" | "cos" | "tan" | "arcsin" | "arccos" | "arctan" | "log" | "log2"
-        | "log10" | "floor" | "ceil" | "round" => {
+        "sqrt" | "sin" | "cos" | "tan" | "arcsin" | "arccos" | "arctan" | "ln" | "floor"
+        | "ceil" | "round" => {
             check_arg_count(name, arg_types, 1)?;
             require_numeric(name, &arg_types[0])?;
+            Ok(StaticType::Float)
+        }
+        // log: 1 arg (natural log) or 2 args (log with base)
+        "log" => {
+            if arg_types.is_empty() || arg_types.len() > 2 {
+                return Err(CccError::type_check(format!(
+                    "log expects 1 or 2 arguments, got {}",
+                    arg_types.len()
+                )));
+            }
+            for arg in arg_types {
+                require_numeric(name, arg)?;
+            }
             Ok(StaticType::Float)
         }
         "abs" => {

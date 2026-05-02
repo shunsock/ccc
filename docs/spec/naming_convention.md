@@ -11,7 +11,7 @@ This document defines the naming rules for built-in functions. All new functions
 Functions that compute values use **snake_case**.
 
 - Single-word names are plain lowercase: `sqrt`, `abs`, `sin`, `sum`, `len`, `now`, `today`
-- Multi-word names use underscores: `current_timestamp`, `log2`, `log10`
+- Multi-word names use underscores: `current_timestamp`
 
 ### 2. Constructors: PascalCase
 
@@ -69,7 +69,7 @@ Type conversions use the `as` operator, not conversion functions.
 
 ### Regular Functions (snake_case)
 
-`sqrt`, `abs`, `sin`, `cos`, `tan`, `arcsin`, `arccos`, `arctan`, `log`, `log2`, `log10`, `floor`, `ceil`, `round`, `mean`, `variance`, `max`, `min`, `median`, `len`, `sum`, `prod`, `head`, `tail`, `now`, `today`, `current_timestamp`
+`sqrt`, `abs`, `sin`, `cos`, `tan`, `arcsin`, `arccos`, `arctan`, `log`, `ln`, `floor`, `ceil`, `round`, `mean`, `variance`, `max`, `min`, `median`, `len`, `sum`, `prod`, `head`, `tail`, `now`, `today`, `current_timestamp`
 
 ### Constructors (PascalCase)
 

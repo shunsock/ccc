@@ -663,8 +663,8 @@ mod tests {
     }
 
     #[test]
-    fn log_one() {
-        // Arrange
+    fn log_natural() {
+        // Arrange: log(1) = 0
         let expression = Expression::FunctionCall {
             name: "log".to_string(),
             arguments: vec![Expression::Integer(1)],
@@ -678,11 +678,11 @@ mod tests {
     }
 
     #[test]
-    fn log2_eight() {
-        // Arrange
+    fn log_with_base() {
+        // Arrange: log(2, 8) = 3
         let expression = Expression::FunctionCall {
-            name: "log2".to_string(),
-            arguments: vec![Expression::Integer(8)],
+            name: "log".to_string(),
+            arguments: vec![Expression::Integer(2), Expression::Integer(8)],
         };
 
         // Act
@@ -693,11 +693,11 @@ mod tests {
     }
 
     #[test]
-    fn log10_hundred() {
-        // Arrange
+    fn log_base10() {
+        // Arrange: log(10, 100) = 2
         let expression = Expression::FunctionCall {
-            name: "log10".to_string(),
-            arguments: vec![Expression::Integer(100)],
+            name: "log".to_string(),
+            arguments: vec![Expression::Integer(10), Expression::Integer(100)],
         };
 
         // Act
@@ -705,6 +705,21 @@ mod tests {
 
         // Assert
         assert_eq!(result.unwrap(), Value::Float(2.0));
+    }
+
+    #[test]
+    fn ln_natural() {
+        // Arrange: ln(1) = 0
+        let expression = Expression::FunctionCall {
+            name: "ln".to_string(),
+            arguments: vec![Expression::Integer(1)],
+        };
+
+        // Act
+        let result = eval(expression);
+
+        // Assert
+        assert_eq!(result.unwrap(), Value::Float(0.0));
     }
 
     #[test]

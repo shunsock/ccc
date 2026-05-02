@@ -24,3 +24,28 @@ pub fn unary_absolute(arguments: &[Value]) -> Result<Value, CccError> {
         ))),
     }
 }
+
+/// `log(x)` — natural logarithm, `log(base, x)` — logarithm with arbitrary base.
+pub fn log_function(arguments: &[Value]) -> Result<Value, CccError> {
+    match arguments.len() {
+        1 => {
+            let x = to_f64(&arguments[0])?;
+            Ok(Value::Float(x.ln()))
+        }
+        2 => {
+            let base = to_f64(&arguments[0])?;
+            let x = to_f64(&arguments[1])?;
+            Ok(Value::Float(x.log(base)))
+        }
+        n => Err(CccError::eval(format!(
+            "log expects 1 or 2 arguments, got {n}"
+        ))),
+    }
+}
+
+/// `ln(x)` — natural logarithm (alias for `log(x)`).
+pub fn ln_function(arguments: &[Value]) -> Result<Value, CccError> {
+    let arg = expect_single_arg("ln", arguments)?;
+    let x = to_f64(arg)?;
+    Ok(Value::Float(x.ln()))
+}
