@@ -17,7 +17,7 @@ jobs:
         id: version
         run: |
           version=$(grep -m1 '^version' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >>"$GITHUB_OUTPUT"
       - name: Check tag does not exist
         run: |
           if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
