@@ -33,9 +33,6 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             artifact: ccc-x86_64-unknown-linux-gnu
-          - target: x86_64-apple-darwin
-            runner: macos-13
-            artifact: ccc-x86_64-apple-darwin
           - target: aarch64-apple-darwin
             runner: macos-14
             artifact: ccc-aarch64-apple-darwin
