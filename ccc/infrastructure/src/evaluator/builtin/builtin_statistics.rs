@@ -1,4 +1,5 @@
 use domain::error::CccError;
+use domain::time::DurationSeconds;
 use domain::value::Value;
 
 use super::builtin_helpers::{collect_numbers, collect_seconds, expect_nonempty_list};
@@ -10,7 +11,9 @@ pub fn list_mean(arguments: &[Value]) -> Result<Value, CccError> {
         Some(Value::DurationTime(_)) => {
             let secs = collect_seconds("mean", elements)?;
             let total: i64 = secs.iter().sum();
-            Ok(Value::DurationTime(total / secs.len() as i64))
+            Ok(Value::DurationTime(DurationSeconds::from_seconds(
+                total / secs.len() as i64,
+            )))
         }
         _ => {
             let nums = collect_numbers("mean", elements)?;
@@ -36,7 +39,9 @@ pub fn list_median(arguments: &[Value]) -> Result<Value, CccError> {
         Some(Value::DurationTime(_)) => {
             let mut secs = collect_seconds("median", elements)?;
             secs.sort();
-            Ok(Value::DurationTime(median_sorted_i64(&secs)))
+            Ok(Value::DurationTime(DurationSeconds::from_seconds(
+                median_sorted_i64(&secs),
+            )))
         }
         _ => {
             let mut nums = collect_numbers("median", elements)?;

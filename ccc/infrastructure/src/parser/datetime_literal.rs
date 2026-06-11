@@ -1,5 +1,6 @@
 use domain::ast::Expression;
 use domain::error::CccError;
+use domain::time::{EpochSeconds, UtcOffset};
 
 use super::pest_based_parser::Rule;
 
@@ -33,15 +34,14 @@ pub(super) fn build_datetime_literal(
         .map_err(|e| CccError::parse(format!("invalid datetime second: {e}")))?;
 
     // Parse optional timezone offset
-    let offset_seconds = if source.len() > 19 {
+    let offset = if source.len() > 19 {
         parse_timezone_offset(&source[19..])?
     } else {
-        0 // default to UTC
+        UtcOffset::UTC
     };
 
-    // Validate via chrono: attempt to build a NaiveDateTime
-    if domain::calendar::calendar_to_epoch_seconds(year, month, day, hour, minute, second).is_none()
-    {
+    // Validate via chrono: attempt to build an instant
+    if EpochSeconds::from_calendar(year, month, day, hour, minute, second).is_none() {
         return Err(CccError::parse(format!(
             "invalid datetime: {year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}"
         )));
@@ -54,14 +54,14 @@ pub(super) fn build_datetime_literal(
         hour,
         minute,
         second,
-        offset_seconds,
+        offset,
     })
 }
 
 /// Parse a timezone suffix: `Z`, `+HH:MM`, `+HHMM`, or `+HH` (and `-` variants).
-fn parse_timezone_offset(tz: &str) -> Result<i32, CccError> {
+fn parse_timezone_offset(tz: &str) -> Result<UtcOffset, CccError> {
     if tz == "Z" {
-        return Ok(0);
+        return Ok(UtcOffset::UTC);
     }
     let sign: i32 = if tz.starts_with('+') { 1 } else { -1 };
     let rest = &tz[1..];
@@ -81,5 +81,10 @@ fn parse_timezone_offset(tz: &str) -> Result<i32, CccError> {
     } else {
         0
     };
-    Ok(sign * (hours * 3600 + minutes * 60))
+    let total_seconds = sign * (hours * 3600 + minutes * 60);
+    UtcOffset::from_seconds(total_seconds).ok_or_else(|| {
+        CccError::parse(format!(
+            "timezone offset out of range: {tz} (must be within ±24:00)"
+        ))
+    })
 }

@@ -2,6 +2,7 @@
 mod tests {
     use domain::ast::{BinaryOperation, CastTargetType, Expression, UnaryOperation};
     use domain::interface::parser::CccParser;
+    use domain::time::UtcOffset;
 
     use crate::parser::PestBasedParser;
 
@@ -910,7 +911,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }
         );
     }
@@ -933,7 +934,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }
         );
     }
@@ -956,7 +957,7 @@ mod tests {
                 hour: 9,
                 minute: 0,
                 second: 0,
-                offset_seconds: 9 * 3600,
+                offset: UtcOffset::from_seconds(9 * 3600).unwrap(),
             }
         );
     }
@@ -979,7 +980,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: -5 * 3600,
+                offset: UtcOffset::from_seconds(-5 * 3600).unwrap(),
             }
         );
     }
@@ -1002,7 +1003,7 @@ mod tests {
                 hour: 9,
                 minute: 0,
                 second: 0,
-                offset_seconds: 9 * 3600,
+                offset: UtcOffset::from_seconds(9 * 3600).unwrap(),
             }
         );
     }
@@ -1049,7 +1050,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }
         );
     }

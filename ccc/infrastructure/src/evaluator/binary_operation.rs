@@ -32,21 +32,12 @@ pub(super) fn evaluate_binary(
         }
 
         // DateTime combinations
-        (
-            Value::DateTime {
-                epoch_seconds,
-                offset_seconds,
-            },
-            Value::DurationTime(d),
-        ) => add_duration_to_datetime(operator, *epoch_seconds, *offset_seconds, *d),
-        (
-            Value::DateTime {
-                epoch_seconds: l, ..
-            },
-            Value::DateTime {
-                epoch_seconds: r, ..
-            },
-        ) => subtract_datetimes(operator, *l, *r),
+        (Value::DateTime { epoch, offset }, Value::DurationTime(d)) => {
+            add_duration_to_datetime(operator, *epoch, *offset, *d)
+        }
+        (Value::DateTime { epoch: l, .. }, Value::DateTime { epoch: r, .. }) => {
+            subtract_datetimes(operator, *l, *r)
+        }
 
         // Timestamp combinations
         (Value::Timestamp(ts), Value::DurationTime(d)) => {

@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::time::{DurationSeconds, EpochSeconds, UtcOffset};
     use crate::value::Value;
 
     #[test]
@@ -218,7 +219,7 @@ mod tests {
     #[test]
     fn display_duration_time_basic() {
         // Arrange
-        let value = Value::DurationTime(10 * 3600 + 20 * 60 + 30);
+        let value = Value::DurationTime(DurationSeconds::from_seconds(10 * 3600 + 20 * 60 + 30));
 
         // Act
         let result = format!("{value}");
@@ -230,7 +231,7 @@ mod tests {
     #[test]
     fn display_duration_time_zero() {
         // Arrange
-        let value = Value::DurationTime(0);
+        let value = Value::DurationTime(DurationSeconds::from_seconds(0));
 
         // Act
         let result = format!("{value}");
@@ -242,7 +243,7 @@ mod tests {
     #[test]
     fn display_duration_time_negative() {
         // Arrange
-        let value = Value::DurationTime(-3600);
+        let value = Value::DurationTime(DurationSeconds::from_seconds(-3600));
 
         // Act
         let result = format!("{value}");
@@ -254,7 +255,7 @@ mod tests {
     #[test]
     fn display_duration_time_over_24_hours() {
         // Arrange: 26 hours 30 minutes
-        let value = Value::DurationTime(26 * 3600 + 30 * 60);
+        let value = Value::DurationTime(DurationSeconds::from_seconds(26 * 3600 + 30 * 60));
 
         // Act
         let result = format!("{value}");
@@ -266,7 +267,7 @@ mod tests {
     #[test]
     fn display_duration_time_seconds_only() {
         // Arrange
-        let value = Value::DurationTime(45);
+        let value = Value::DurationTime(DurationSeconds::from_seconds(45));
 
         // Act
         let result = format!("{value}");
@@ -278,7 +279,7 @@ mod tests {
     #[test]
     fn clone_duration_time() {
         // Arrange
-        let value = Value::DurationTime(3600);
+        let value = Value::DurationTime(DurationSeconds::from_seconds(3600));
 
         // Act
         let cloned = value.clone();
@@ -293,8 +294,8 @@ mod tests {
     fn display_datetime_utc() {
         // Arrange: 2026-01-01T00:00:00Z (epoch = 1767225600)
         let value = Value::DateTime {
-            epoch_seconds: 1_767_225_600,
-            offset_seconds: 0,
+            epoch: EpochSeconds::from_seconds(1_767_225_600).unwrap(),
+            offset: UtcOffset::from_seconds(0).unwrap(),
         };
 
         // Act
@@ -308,8 +309,8 @@ mod tests {
     fn display_datetime_positive_offset() {
         // Arrange: 2026-01-01T09:00:00+09:00 (same UTC instant as above)
         let value = Value::DateTime {
-            epoch_seconds: 1_767_225_600,
-            offset_seconds: 9 * 3600,
+            epoch: EpochSeconds::from_seconds(1_767_225_600).unwrap(),
+            offset: UtcOffset::from_seconds(9 * 3600).unwrap(),
         };
 
         // Act
@@ -323,8 +324,8 @@ mod tests {
     fn display_datetime_negative_offset() {
         // Arrange: 2025-12-31T19:00:00-05:00 (same UTC instant as above)
         let value = Value::DateTime {
-            epoch_seconds: 1_767_225_600,
-            offset_seconds: -5 * 3600,
+            epoch: EpochSeconds::from_seconds(1_767_225_600).unwrap(),
+            offset: UtcOffset::from_seconds(-5 * 3600).unwrap(),
         };
 
         // Act
@@ -338,8 +339,8 @@ mod tests {
     fn display_datetime_epoch() {
         // Arrange: Unix epoch
         let value = Value::DateTime {
-            epoch_seconds: 0,
-            offset_seconds: 0,
+            epoch: EpochSeconds::from_seconds(0).unwrap(),
+            offset: UtcOffset::from_seconds(0).unwrap(),
         };
 
         // Act
@@ -353,8 +354,8 @@ mod tests {
     fn clone_datetime() {
         // Arrange
         let value = Value::DateTime {
-            epoch_seconds: 0,
-            offset_seconds: 0,
+            epoch: EpochSeconds::from_seconds(0).unwrap(),
+            offset: UtcOffset::from_seconds(0).unwrap(),
         };
 
         // Act
@@ -369,21 +370,19 @@ mod tests {
     #[test]
     fn calendar_round_trip_epoch() {
         // Arrange & Act
-        use crate::calendar::{calendar_to_epoch_seconds, epoch_seconds_to_calendar};
-        let epoch = calendar_to_epoch_seconds(1970, 1, 1, 0, 0, 0).unwrap();
-        let (y, m, d, h, mi, s) = epoch_seconds_to_calendar(epoch);
+        let epoch = EpochSeconds::from_calendar(1970, 1, 1, 0, 0, 0).unwrap();
+        let (y, m, d, h, mi, s) = epoch.to_calendar();
 
         // Assert
-        assert_eq!(epoch, 0);
+        assert_eq!(epoch.seconds(), 0);
         assert_eq!((y, m, d, h, mi, s), (1970, 1, 1, 0, 0, 0));
     }
 
     #[test]
     fn calendar_round_trip_2026() {
         // Arrange & Act
-        use crate::calendar::{calendar_to_epoch_seconds, epoch_seconds_to_calendar};
-        let epoch = calendar_to_epoch_seconds(2026, 6, 15, 12, 30, 45).unwrap();
-        let (y, m, d, h, mi, s) = epoch_seconds_to_calendar(epoch);
+        let epoch = EpochSeconds::from_calendar(2026, 6, 15, 12, 30, 45).unwrap();
+        let (y, m, d, h, mi, s) = epoch.to_calendar();
 
         // Assert
         assert_eq!((y, m, d, h, mi, s), (2026, 6, 15, 12, 30, 45));
@@ -392,9 +391,8 @@ mod tests {
     #[test]
     fn calendar_leap_year_feb_29() {
         // Arrange & Act
-        use crate::calendar::{calendar_to_epoch_seconds, epoch_seconds_to_calendar};
-        let epoch = calendar_to_epoch_seconds(2024, 2, 29, 0, 0, 0).unwrap();
-        let (y, m, d, h, mi, s) = epoch_seconds_to_calendar(epoch);
+        let epoch = EpochSeconds::from_calendar(2024, 2, 29, 0, 0, 0).unwrap();
+        let (y, m, d, h, mi, s) = epoch.to_calendar();
 
         // Assert
         assert_eq!((y, m, d, h, mi, s), (2024, 2, 29, 0, 0, 0));
@@ -403,10 +401,9 @@ mod tests {
     #[test]
     fn calendar_invalid_date_returns_none() {
         // Arrange & Act & Assert
-        use crate::calendar::calendar_to_epoch_seconds;
-        assert!(calendar_to_epoch_seconds(2025, 2, 29, 0, 0, 0).is_none());
-        assert!(calendar_to_epoch_seconds(2026, 13, 1, 0, 0, 0).is_none());
-        assert!(calendar_to_epoch_seconds(2026, 1, 1, 25, 0, 0).is_none());
+        assert!(EpochSeconds::from_calendar(2025, 2, 29, 0, 0, 0).is_none());
+        assert!(EpochSeconds::from_calendar(2026, 13, 1, 0, 0, 0).is_none());
+        assert!(EpochSeconds::from_calendar(2026, 1, 1, 25, 0, 0).is_none());
     }
 
     #[test]

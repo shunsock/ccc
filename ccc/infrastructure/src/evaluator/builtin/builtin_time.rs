@@ -1,4 +1,5 @@
 use domain::error::CccError;
+use domain::time::{EpochSeconds, UtcOffset};
 use domain::value::Value;
 
 use super::builtin_helpers::expect_no_args;
@@ -12,9 +13,11 @@ fn current_epoch() -> Result<std::time::Duration, CccError> {
 pub fn now_function(arguments: &[Value]) -> Result<Value, CccError> {
     expect_no_args("now", arguments)?;
     let epoch = current_epoch()?;
+    let epoch = EpochSeconds::from_seconds(epoch.as_secs() as i64)
+        .ok_or_else(|| CccError::eval("system time out of range"))?;
     Ok(Value::DateTime {
-        epoch_seconds: epoch.as_secs() as i64,
-        offset_seconds: 0,
+        epoch,
+        offset: UtcOffset::UTC,
     })
 }
 
@@ -23,9 +26,11 @@ pub fn today_function(arguments: &[Value]) -> Result<Value, CccError> {
     let epoch = current_epoch()?;
     let secs = epoch.as_secs() as i64;
     let day_seconds = secs - (secs % 86400);
+    let epoch = EpochSeconds::from_seconds(day_seconds)
+        .ok_or_else(|| CccError::eval("system time out of range"))?;
     Ok(Value::DateTime {
-        epoch_seconds: day_seconds,
-        offset_seconds: 0,
+        epoch,
+        offset: UtcOffset::UTC,
     })
 }
 

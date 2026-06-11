@@ -1,7 +1,7 @@
 use domain::error::CccError;
 use domain::value::Value;
 
-use super::builtin_helpers::{expect_single_arg, to_f64, value_type_name};
+use super::builtin_helpers::{expect_single_arg, to_f64};
 
 pub fn unary_float_function(
     name: &str,
@@ -20,7 +20,7 @@ pub fn unary_absolute(arguments: &[Value]) -> Result<Value, CccError> {
         Value::Float(n) => Ok(Value::Float(n.abs())),
         _ => Err(CccError::eval(format!(
             "abs: expected number, got {}",
-            value_type_name(arg)
+            arg.type_name()
         ))),
     }
 }

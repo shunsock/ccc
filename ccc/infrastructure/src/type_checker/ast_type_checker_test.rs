@@ -4,6 +4,7 @@ mod tests {
         AbstractSyntaxTree, BinaryOperation, CastTargetType, Expression, UnaryOperation,
     };
     use domain::interface::type_checker::CccTypeChecker;
+    use domain::time::UtcOffset;
 
     use crate::type_checker::AstTypeChecker;
 
@@ -133,7 +134,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             })
             .is_ok()
         );
@@ -216,7 +217,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
             target_type: CastTargetType::Integer,
         };
@@ -334,7 +335,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
             right: Box::new(Expression::DurationTime {
                 hours: 1,
@@ -359,7 +360,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
             right: Box::new(Expression::DateTime {
                 year: 2026,
@@ -368,7 +369,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
         };
 
@@ -390,7 +391,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
             right: Box::new(Expression::DateTime {
                 year: 2026,
@@ -399,7 +400,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
         };
 
@@ -419,7 +420,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
             right: Box::new(Expression::Integer(2)),
         };
@@ -487,7 +488,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
         };
 
@@ -626,7 +627,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
             target_type: CastTargetType::Timestamp,
         };

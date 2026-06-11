@@ -1,5 +1,6 @@
 use chrono::{Datelike, FixedOffset, Timelike};
 
+use crate::time::{DurationSeconds, EpochSeconds, UtcOffset};
 use crate::value::Value;
 
 impl std::fmt::Display for Value {
@@ -8,12 +9,9 @@ impl std::fmt::Display for Value {
             Value::Integer(n) => write!(f, "{n}"),
             Value::Float(n) => write!(f, "{n}"),
             Value::List(elements) => format_list(f, elements),
-            Value::DateTime {
-                epoch_seconds,
-                offset_seconds,
-            } => format_datetime(f, *epoch_seconds, *offset_seconds),
+            Value::DateTime { epoch, offset } => format_datetime(f, *epoch, *offset),
             Value::Timestamp(ts) => format_timestamp(f, *ts),
-            Value::DurationTime(total_seconds) => format_duration(f, *total_seconds),
+            Value::DurationTime(span) => format_duration(f, *span),
         }
     }
 }
@@ -31,13 +29,14 @@ fn format_list(f: &mut std::fmt::Formatter<'_>, elements: &[Value]) -> std::fmt:
 
 fn format_datetime(
     f: &mut std::fmt::Formatter<'_>,
-    epoch_seconds: i64,
-    offset_seconds: i32,
+    epoch: EpochSeconds,
+    offset: UtcOffset,
 ) -> std::fmt::Result {
-    let offset = FixedOffset::east_opt(offset_seconds).expect("timezone offset out of range");
-    let dt = chrono::DateTime::from_timestamp(epoch_seconds, 0)
-        .expect("epoch seconds out of range")
-        .with_timezone(&offset);
+    // Both expect calls are infallible: the value objects validate at construction.
+    let fixed = FixedOffset::east_opt(offset.seconds()).expect("UtcOffset guarantees range");
+    let dt = chrono::DateTime::from_timestamp(epoch.seconds(), 0)
+        .expect("EpochSeconds guarantees range")
+        .with_timezone(&fixed);
     write!(
         f,
         "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
@@ -48,11 +47,11 @@ fn format_datetime(
         dt.minute(),
         dt.second()
     )?;
-    if offset_seconds == 0 {
+    if offset.is_utc() {
         write!(f, "Z")
     } else {
-        let sign = if offset_seconds >= 0 { '+' } else { '-' };
-        let abs_offset = offset_seconds.unsigned_abs();
+        let sign = if offset.seconds() >= 0 { '+' } else { '-' };
+        let abs_offset = offset.seconds().unsigned_abs();
         let offset_hours = abs_offset / 3600;
         let offset_minutes = (abs_offset % 3600) / 60;
         write!(f, "{sign}{offset_hours:02}:{offset_minutes:02}")
@@ -68,9 +67,9 @@ fn format_timestamp(f: &mut std::fmt::Formatter<'_>, ts: f64) -> std::fmt::Resul
     }
 }
 
-fn format_duration(f: &mut std::fmt::Formatter<'_>, total_seconds: i64) -> std::fmt::Result {
-    let negative = total_seconds < 0;
-    let abs_seconds = total_seconds.unsigned_abs();
+fn format_duration(f: &mut std::fmt::Formatter<'_>, span: DurationSeconds) -> std::fmt::Result {
+    let negative = span.seconds() < 0;
+    let abs_seconds = span.seconds().unsigned_abs();
     let hours = abs_seconds / 3600;
     let minutes = (abs_seconds % 3600) / 60;
     let seconds = abs_seconds % 60;

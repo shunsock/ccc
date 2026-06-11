@@ -1,15 +1,17 @@
+use crate::time::{DurationSeconds, EpochSeconds, UtcOffset};
+
 /// Represents a computed value in the calculator.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Integer(i64),
     Float(f64),
     List(Vec<Value>),
-    /// Duration stored as total seconds (signed to support negative durations).
-    DurationTime(i64),
-    /// DateTime stored as UTC epoch seconds with a display timezone offset.
+    /// Duration as a signed time span.
+    DurationTime(DurationSeconds),
+    /// DateTime as a UTC instant with a display timezone offset.
     DateTime {
-        epoch_seconds: i64,
-        offset_seconds: i32,
+        epoch: EpochSeconds,
+        offset: UtcOffset,
     },
     /// Unix timestamp in seconds. Stored as f64 to support sub-second precision.
     Timestamp(f64),

@@ -1,4 +1,5 @@
 use domain::error::CccError;
+use domain::time::{DurationSeconds, EpochSeconds, UtcOffset};
 use domain::value::Value;
 
 use super::builtin_helpers::{expect_single_arg, to_f64, to_i64_strict};
@@ -28,7 +29,9 @@ pub fn duration_time_constructor(arguments: &[Value]) -> Result<Value, CccError>
     };
 
     let total_seconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
-    Ok(Value::DurationTime(total_seconds))
+    Ok(Value::DurationTime(DurationSeconds::from_seconds(
+        total_seconds,
+    )))
 }
 
 pub fn datetime_constructor(arguments: &[Value]) -> Result<Value, CccError> {
@@ -46,7 +49,7 @@ pub fn datetime_constructor(arguments: &[Value]) -> Result<Value, CccError> {
     let minute = to_i64_strict(&arguments[4], "minute")?;
     let second = to_i64_strict(&arguments[5], "second")?;
 
-    let epoch_seconds = domain::calendar::calendar_to_epoch_seconds(
+    let epoch = EpochSeconds::from_calendar(
         year,
         month as u8,
         day as u8,
@@ -61,8 +64,8 @@ pub fn datetime_constructor(arguments: &[Value]) -> Result<Value, CccError> {
     })?;
 
     Ok(Value::DateTime {
-        epoch_seconds,
-        offset_seconds: 0,
+        epoch,
+        offset: UtcOffset::UTC,
     })
 }
 

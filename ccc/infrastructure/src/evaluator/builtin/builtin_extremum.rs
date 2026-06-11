@@ -1,4 +1,5 @@
 use domain::error::CccError;
+use domain::time::DurationSeconds;
 use domain::value::Value;
 
 use super::builtin_helpers::{
@@ -17,9 +18,9 @@ pub fn list_extremum(
     match elements.first() {
         Some(Value::DurationTime(_)) => {
             let secs = collect_seconds(name, elements)?;
-            Ok(Value::DurationTime(
+            Ok(Value::DurationTime(DurationSeconds::from_seconds(
                 secs.into_iter().reduce(sec_reduce).unwrap(),
-            ))
+            )))
         }
         Some(Value::Integer(_)) => {
             let ints = collect_integers(name, elements)?;

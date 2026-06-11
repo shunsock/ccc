@@ -1,6 +1,7 @@
 use domain::ast::{AbstractSyntaxTree, Expression};
 use domain::error::CccError;
 use domain::interface::evaluator::CccEvaluator;
+use domain::time::{DurationSeconds, EpochSeconds};
 use domain::value::Value;
 
 use super::binary_operation::evaluate_binary;
@@ -54,10 +55,9 @@ pub(super) fn evaluate_expression(expression: &Expression) -> Result<Value, CccE
             hours,
             minutes,
             seconds,
-        } => {
-            let total_seconds = (*hours) * 3600 + (*minutes as i64) * 60 + (*seconds as i64);
-            Ok(Value::DurationTime(total_seconds))
-        }
+        } => Ok(Value::DurationTime(DurationSeconds::from_hms(
+            *hours, *minutes, *seconds,
+        ))),
         Expression::DateTime {
             year,
             month,
@@ -65,17 +65,18 @@ pub(super) fn evaluate_expression(expression: &Expression) -> Result<Value, CccE
             hour,
             minute,
             second,
-            offset_seconds,
+            offset,
         } => {
-            let local_epoch = domain::calendar::calendar_to_epoch_seconds(
-                *year, *month, *day, *hour, *minute, *second,
-            )
-            .ok_or_else(|| CccError::eval("invalid datetime components"))?;
+            let local_epoch =
+                EpochSeconds::from_calendar(*year, *month, *day, *hour, *minute, *second)
+                    .ok_or_else(|| CccError::eval("invalid datetime components"))?;
             // Convert local time to UTC by subtracting the offset
-            let utc_epoch = local_epoch - (*offset_seconds as i64);
+            let utc_epoch = local_epoch
+                .checked_sub(DurationSeconds::from_seconds(offset.seconds() as i64))
+                .ok_or_else(|| CccError::eval("datetime out of range"))?;
             Ok(Value::DateTime {
-                epoch_seconds: utc_epoch,
-                offset_seconds: *offset_seconds,
+                epoch: utc_epoch,
+                offset: *offset,
             })
         }
     }

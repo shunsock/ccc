@@ -18,7 +18,7 @@ pub fn collect_seconds(name: &str, elements: &[Value]) -> Result<Vec<i64>, CccEr
     elements
         .iter()
         .map(|e| match e {
-            Value::DurationTime(s) => Ok(*s),
+            Value::DurationTime(s) => Ok(s.seconds()),
             _ => Err(CccError::eval(format!(
                 "{name}: list elements must be the same type"
             ))),

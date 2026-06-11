@@ -77,8 +77,8 @@ pub enum Expression {
         hour: u8,
         minute: u8,
         second: u8,
-        /// Timezone offset in seconds from UTC.
-        offset_seconds: i32,
+        /// Timezone offset from UTC, validated at parse time.
+        offset: crate::time::UtcOffset,
     },
 }
 
