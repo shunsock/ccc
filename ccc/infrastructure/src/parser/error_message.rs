@@ -29,6 +29,8 @@ fn humanize_pest_error(variant: &pest::error::ErrorVariant<Rule>) -> String {
 
 fn humanize_rule(rule: &Rule) -> &'static str {
     match rule {
+        Rule::program => "expression",
+        Rule::EOI => "end of input",
         Rule::expression => "expression",
         Rule::term => "term",
         Rule::power => "expression",

@@ -42,6 +42,21 @@ fn invalid_expression_fails() {
 }
 
 #[test]
+fn valid_prefix_with_invalid_trailing_input_fails() {
+    // Arrange: "1" alone is valid, but the trailing "+ * 2" must not be
+    // silently dropped (regression test for issue #39)
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("1 + * 2").assert();
+
+    // Assert
+    result
+        .failure()
+        .stderr(predicate::str::contains("parse error"));
+}
+
+#[test]
 fn mixed_type_list_fails() {
     // Arrange
     let mut cmd = ccc();

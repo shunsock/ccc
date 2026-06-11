@@ -23,12 +23,16 @@ pub struct PestBasedParser;
 
 impl CccParser for PestBasedParser {
     fn parse(&self, input: &str) -> Result<AbstractSyntaxTree, CccError> {
+        // Rule::program is anchored with SOI/EOI, so input with a valid
+        // prefix but invalid trailing content fails here instead of being
+        // silently truncated (see issue #39).
         let pairs =
-            ExpressionParser::parse(Rule::expression, input).map_err(|e| to_parse_error(&e))?;
+            ExpressionParser::parse(Rule::program, input).map_err(|e| to_parse_error(&e))?;
 
         let pair = pairs
             .into_iter()
             .next()
+            .and_then(|program| program.into_inner().next())
             .ok_or_else(|| CccError::parse("empty input".to_string()))?;
 
         let expression = build_expression(pair)?;

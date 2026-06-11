@@ -1,3 +1,6 @@
+// Root rule: anchored to both ends so partially-valid input is rejected.
+program = { SOI ~ expression ~ EOI }
+
 expression = { term ~ (additive_operator ~ term)* }
 
 term = { power ~ (multiplicative_operator ~ power)* }
