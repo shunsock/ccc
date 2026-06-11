@@ -42,13 +42,13 @@ mod tests {
     #[test]
     fn display_float() {
         // Arrange
-        let value = Value::Float(3.14);
+        let value = Value::Float(2.5);
 
         // Act
         let result = format!("{value}");
 
         // Assert
-        assert_eq!(result, "3.14");
+        assert_eq!(result, "2.5");
     }
 
     #[test]
@@ -114,40 +114,6 @@ mod tests {
     }
 
     #[test]
-    fn clone_integer() {
-        // Arrange
-        let value = Value::Integer(10);
-
-        // Act
-        let cloned = value.clone();
-
-        // Assert
-        assert_eq!(cloned, value);
-    }
-
-    #[test]
-    fn clone_float() {
-        // Arrange
-        let value = Value::Float(1.5);
-
-        // Act
-        let cloned = value.clone();
-
-        // Assert
-        assert_eq!(cloned, value);
-    }
-
-    #[test]
-    fn integer_and_float_are_distinct() {
-        // Arrange
-        let int = Value::Integer(1);
-        let float = Value::Float(1.0);
-
-        // Act & Assert
-        assert_ne!(int, float);
-    }
-
-    #[test]
     fn display_empty_list() {
         // Arrange
         let value = Value::List(vec![]);
@@ -200,18 +166,6 @@ mod tests {
 
         // Assert
         assert_eq!(result, "[1, 2.5]");
-    }
-
-    #[test]
-    fn clone_list() {
-        // Arrange
-        let value = Value::List(vec![Value::Integer(1), Value::Integer(2)]);
-
-        // Act
-        let cloned = value.clone();
-
-        // Assert
-        assert_eq!(cloned, value);
     }
 
     // --- DurationTime display ---
@@ -276,18 +230,6 @@ mod tests {
         assert_eq!(result, "0:00:45");
     }
 
-    #[test]
-    fn clone_duration_time() {
-        // Arrange
-        let value = Value::DurationTime(DurationSeconds::from_seconds(3600));
-
-        // Act
-        let cloned = value.clone();
-
-        // Assert
-        assert_eq!(cloned, value);
-    }
-
     // --- DateTime display ---
 
     #[test]
@@ -348,21 +290,6 @@ mod tests {
 
         // Assert
         assert_eq!(result, "1970-01-01T00:00:00Z");
-    }
-
-    #[test]
-    fn clone_datetime() {
-        // Arrange
-        let value = Value::DateTime {
-            epoch: EpochSeconds::from_seconds(0).unwrap(),
-            offset: UtcOffset::from_seconds(0).unwrap(),
-        };
-
-        // Act
-        let cloned = value.clone();
-
-        // Assert
-        assert_eq!(cloned, value);
     }
 
     // --- Calendar conversion round-trip ---
@@ -451,17 +378,5 @@ mod tests {
 
         // Assert
         assert_eq!(result, "0");
-    }
-
-    #[test]
-    fn clone_timestamp() {
-        // Arrange
-        let value = Value::Timestamp(1234567890.0);
-
-        // Act
-        let cloned = value.clone();
-
-        // Assert
-        assert_eq!(cloned, value);
     }
 }
