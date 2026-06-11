@@ -1,7 +1,9 @@
 mod builtin_constructor;
+mod builtin_extremum;
 mod builtin_helpers;
 mod builtin_list;
 mod builtin_math;
+mod builtin_statistics;
 mod builtin_time;
 
 use domain::error::CccError;
@@ -25,17 +27,19 @@ pub fn call_builtin(name: &str, arguments: &[Value]) -> Result<Value, CccError> 
         "ceil" => builtin_math::unary_float_function(name, arguments, f64::ceil),
         "round" => builtin_math::unary_float_function(name, arguments, f64::round),
 
-        // List & Statistics
+        // List
         "len" => builtin_list::list_len(arguments),
         "sum" => builtin_list::list_sum(arguments),
         "prod" => builtin_list::list_prod(arguments),
-        "mean" => builtin_list::list_mean(arguments),
-        "variance" => builtin_list::list_variance(arguments),
-        "max" => builtin_list::list_extremum("max", arguments, i64::max, f64::max, i64::max),
-        "min" => builtin_list::list_extremum("min", arguments, i64::min, f64::min, i64::min),
-        "median" => builtin_list::list_median(arguments),
         "head" => builtin_list::list_head(arguments),
         "tail" => builtin_list::list_tail(arguments),
+
+        // Statistics
+        "mean" => builtin_statistics::list_mean(arguments),
+        "variance" => builtin_statistics::list_variance(arguments),
+        "max" => builtin_extremum::list_extremum("max", arguments, i64::max, f64::max, i64::max),
+        "min" => builtin_extremum::list_extremum("min", arguments, i64::min, f64::min, i64::min),
+        "median" => builtin_statistics::list_median(arguments),
 
         // Constructors
         "DurationTime" => builtin_constructor::duration_time_constructor(arguments),

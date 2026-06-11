@@ -1091,7 +1091,7 @@ mod tests {
         {
             assert_eq!(offset_seconds, 0);
             // Verify round-trip
-            let (y, m, d, h, mi, s) = domain::value::epoch_seconds_to_calendar(epoch_seconds);
+            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
             assert_eq!((y, m, d, h, mi, s), (2026, 1, 1, 0, 0, 0));
         } else {
             panic!("expected DateTime");
@@ -1121,7 +1121,7 @@ mod tests {
         } = result
         {
             assert_eq!(offset_seconds, 9 * 3600);
-            let (y, m, d, h, mi, s) = domain::value::epoch_seconds_to_calendar(epoch_seconds);
+            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
             assert_eq!((y, m, d, h, mi, s), (2026, 1, 1, 0, 0, 0));
         } else {
             panic!("expected DateTime");
@@ -1153,7 +1153,7 @@ mod tests {
         } = result
         {
             assert_eq!(offset_seconds, 0); // constructor defaults to UTC
-            let (y, m, d, h, mi, s) = domain::value::epoch_seconds_to_calendar(epoch_seconds);
+            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
             assert_eq!((y, m, d, h, mi, s), (2026, 6, 15, 12, 30, 0));
         } else {
             panic!("expected DateTime");
@@ -1485,7 +1485,7 @@ mod tests {
         } = result
         {
             assert_eq!(offset_seconds, 0);
-            let (y, m, d, h, mi, s) = domain::value::epoch_seconds_to_calendar(epoch_seconds);
+            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
             assert_eq!((y, m, d, h, mi, s), (2026, 1, 1, 1, 30, 0));
         } else {
             panic!("expected DateTime");
@@ -1684,7 +1684,7 @@ mod tests {
         } = result
         {
             assert_eq!(offset_seconds, 0);
-            let (y, m, d, h, mi, s) = domain::value::epoch_seconds_to_calendar(epoch_seconds);
+            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
             assert_eq!((y, m, d, h, mi, s), (2026, 6, 15, 12, 30, 0));
         } else {
             panic!("expected DateTime");

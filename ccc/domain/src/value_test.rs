@@ -369,7 +369,7 @@ mod tests {
     #[test]
     fn calendar_round_trip_epoch() {
         // Arrange & Act
-        use crate::value::{calendar_to_epoch_seconds, epoch_seconds_to_calendar};
+        use crate::calendar::{calendar_to_epoch_seconds, epoch_seconds_to_calendar};
         let epoch = calendar_to_epoch_seconds(1970, 1, 1, 0, 0, 0).unwrap();
         let (y, m, d, h, mi, s) = epoch_seconds_to_calendar(epoch);
 
@@ -381,7 +381,7 @@ mod tests {
     #[test]
     fn calendar_round_trip_2026() {
         // Arrange & Act
-        use crate::value::{calendar_to_epoch_seconds, epoch_seconds_to_calendar};
+        use crate::calendar::{calendar_to_epoch_seconds, epoch_seconds_to_calendar};
         let epoch = calendar_to_epoch_seconds(2026, 6, 15, 12, 30, 45).unwrap();
         let (y, m, d, h, mi, s) = epoch_seconds_to_calendar(epoch);
 
@@ -392,7 +392,7 @@ mod tests {
     #[test]
     fn calendar_leap_year_feb_29() {
         // Arrange & Act
-        use crate::value::{calendar_to_epoch_seconds, epoch_seconds_to_calendar};
+        use crate::calendar::{calendar_to_epoch_seconds, epoch_seconds_to_calendar};
         let epoch = calendar_to_epoch_seconds(2024, 2, 29, 0, 0, 0).unwrap();
         let (y, m, d, h, mi, s) = epoch_seconds_to_calendar(epoch);
 
@@ -403,7 +403,7 @@ mod tests {
     #[test]
     fn calendar_invalid_date_returns_none() {
         // Arrange & Act & Assert
-        use crate::value::calendar_to_epoch_seconds;
+        use crate::calendar::calendar_to_epoch_seconds;
         assert!(calendar_to_epoch_seconds(2025, 2, 29, 0, 0, 0).is_none());
         assert!(calendar_to_epoch_seconds(2026, 13, 1, 0, 0, 0).is_none());
         assert!(calendar_to_epoch_seconds(2026, 1, 1, 25, 0, 0).is_none());
@@ -411,7 +411,7 @@ mod tests {
 
     #[test]
     fn days_in_month_february_leap() {
-        use crate::value::days_in_month;
+        use crate::calendar::days_in_month;
         assert_eq!(days_in_month(2024, 2), Some(29));
         assert_eq!(days_in_month(2025, 2), Some(28));
         assert_eq!(days_in_month(2000, 2), Some(29));
