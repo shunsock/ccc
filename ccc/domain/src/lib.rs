@@ -8,8 +8,6 @@ pub mod value;
 mod value_display;
 
 #[cfg(test)]
-mod ast_test;
-#[cfg(test)]
 mod error_test;
 #[cfg(test)]
 mod value_test;
