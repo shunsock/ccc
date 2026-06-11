@@ -46,7 +46,7 @@ pub fn datetime_constructor(arguments: &[Value]) -> Result<Value, CccError> {
     let minute = to_i64_strict(&arguments[4], "minute")?;
     let second = to_i64_strict(&arguments[5], "second")?;
 
-    let epoch_seconds = domain::value::calendar_to_epoch_seconds(
+    let epoch_seconds = domain::calendar::calendar_to_epoch_seconds(
         year,
         month as u8,
         day as u8,

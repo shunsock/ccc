@@ -1,3 +1,4 @@
+mod builtin_reference;
 mod cli;
 mod input_mode;
 mod show_builtin;

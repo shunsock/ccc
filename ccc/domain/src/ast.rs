@@ -18,6 +18,20 @@ pub enum BinaryOperation {
     Power,
 }
 
+impl BinaryOperation {
+    /// Source-level symbol used in error messages.
+    pub fn symbol(&self) -> &'static str {
+        match self {
+            BinaryOperation::Add => "+",
+            BinaryOperation::Subtract => "-",
+            BinaryOperation::Multiply => "*",
+            BinaryOperation::Divide => "/",
+            BinaryOperation::Modulo => "%",
+            BinaryOperation::Power => "^",
+        }
+    }
+}
+
 /// Unary operators.
 #[derive(Debug, Clone, PartialEq)]
 pub enum UnaryOperation {
