@@ -1,6 +1,7 @@
 use std::ops::{Add, Mul};
 
 use domain::error::CccError;
+use domain::time::DurationSeconds;
 use domain::value::Value;
 
 use super::builtin_helpers::{collect_seconds, expect_single_list, fold_numbers};
@@ -17,7 +18,9 @@ pub fn list_sum(arguments: &[Value]) -> Result<Value, CccError> {
         None => Ok(Value::Integer(0)),
         Some(Value::DurationTime(_)) => {
             let secs = collect_seconds("sum", elements)?;
-            Ok(Value::DurationTime(secs.iter().sum()))
+            Ok(Value::DurationTime(DurationSeconds::from_seconds(
+                secs.iter().sum(),
+            )))
         }
         _ => fold_numbers("sum", elements, 0, 0.0, i64::wrapping_add, f64::add),
     }

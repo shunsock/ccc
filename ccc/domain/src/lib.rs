@@ -3,6 +3,7 @@ pub mod calendar;
 pub mod error;
 pub mod interface;
 pub mod static_type;
+pub mod time;
 pub mod value;
 mod value_display;
 

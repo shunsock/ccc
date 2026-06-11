@@ -5,6 +5,7 @@ mod tests {
     };
     use domain::error::CccError;
     use domain::interface::evaluator::CccEvaluator;
+    use domain::time::{DurationSeconds, EpochSeconds, UtcOffset};
     use domain::value::Value;
 
     use crate::evaluator::AstEvaluator;
@@ -969,7 +970,7 @@ mod tests {
         // Assert
         assert_eq!(
             result.unwrap(),
-            Value::DurationTime(10 * 3600 + 20 * 60 + 30)
+            Value::DurationTime(DurationSeconds::from_seconds(10 * 3600 + 20 * 60 + 30))
         );
     }
 
@@ -986,7 +987,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(0));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(0))
+        );
     }
 
     #[test]
@@ -1005,7 +1009,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(1 * 3600 + 30 * 60));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(1 * 3600 + 30 * 60))
+        );
     }
 
     #[test]
@@ -1027,7 +1034,9 @@ mod tests {
         // Assert
         assert_eq!(
             result.unwrap(),
-            Value::DurationTime(1 * 86400 + 2 * 3600 + 30 * 60)
+            Value::DurationTime(DurationSeconds::from_seconds(
+                1 * 86400 + 2 * 3600 + 30 * 60
+            ))
         );
     }
 
@@ -1062,7 +1071,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(-3600));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(-3600))
+        );
     }
 
     // --- DateTime ---
@@ -1077,21 +1089,17 @@ mod tests {
             hour: 0,
             minute: 0,
             second: 0,
-            offset_seconds: 0,
+            offset: UtcOffset::from_seconds(0).unwrap(),
         };
 
         // Act
         let result = eval(expression).unwrap();
 
         // Assert
-        if let Value::DateTime {
-            epoch_seconds,
-            offset_seconds,
-        } = result
-        {
-            assert_eq!(offset_seconds, 0);
+        if let Value::DateTime { epoch, offset } = result {
+            assert_eq!(offset, UtcOffset::UTC);
             // Verify round-trip
-            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
+            let (y, m, d, h, mi, s) = epoch.to_calendar();
             assert_eq!((y, m, d, h, mi, s), (2026, 1, 1, 0, 0, 0));
         } else {
             panic!("expected DateTime");
@@ -1108,20 +1116,16 @@ mod tests {
             hour: 9,
             minute: 0,
             second: 0,
-            offset_seconds: 9 * 3600,
+            offset: UtcOffset::from_seconds(9 * 3600).unwrap(),
         };
 
         // Act
         let result = eval(expression).unwrap();
 
         // Assert: same UTC instant as 2026-01-01T00:00:00Z
-        if let Value::DateTime {
-            epoch_seconds,
-            offset_seconds,
-        } = result
-        {
-            assert_eq!(offset_seconds, 9 * 3600);
-            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
+        if let Value::DateTime { epoch, offset } = result {
+            assert_eq!(offset, UtcOffset::from_seconds(9 * 3600).unwrap());
+            let (y, m, d, h, mi, s) = epoch.to_calendar();
             assert_eq!((y, m, d, h, mi, s), (2026, 1, 1, 0, 0, 0));
         } else {
             panic!("expected DateTime");
@@ -1147,13 +1151,9 @@ mod tests {
         let result = eval(expression).unwrap();
 
         // Assert
-        if let Value::DateTime {
-            epoch_seconds,
-            offset_seconds,
-        } = result
-        {
-            assert_eq!(offset_seconds, 0); // constructor defaults to UTC
-            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
+        if let Value::DateTime { epoch, offset } = result {
+            assert_eq!(offset, UtcOffset::UTC); // constructor defaults to UTC
+            let (y, m, d, h, mi, s) = epoch.to_calendar();
             assert_eq!((y, m, d, h, mi, s), (2026, 6, 15, 12, 30, 0));
         } else {
             panic!("expected DateTime");
@@ -1209,7 +1209,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
         };
 
@@ -1314,8 +1314,8 @@ mod tests {
         assert_eq!(
             result,
             Value::DateTime {
-                epoch_seconds: 0,
-                offset_seconds: 0,
+                epoch: EpochSeconds::from_seconds(0).unwrap(),
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }
         );
     }
@@ -1343,7 +1343,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(5400));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(5400))
+        );
     }
 
     #[test]
@@ -1367,7 +1370,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(5400));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(5400))
+        );
     }
 
     #[test]
@@ -1391,7 +1397,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(-3600));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(-3600))
+        );
     }
 
     #[test]
@@ -1411,7 +1420,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(10800));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(10800))
+        );
     }
 
     #[test]
@@ -1431,7 +1443,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(10800));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(10800))
+        );
     }
 
     #[test]
@@ -1451,7 +1466,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(5400));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(5400))
+        );
     }
 
     #[test]
@@ -1466,7 +1484,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
             right: Box::new(Expression::DurationTime {
                 hours: 1,
@@ -1479,13 +1497,9 @@ mod tests {
         let result = eval(expression).unwrap();
 
         // Assert
-        if let Value::DateTime {
-            epoch_seconds,
-            offset_seconds,
-        } = result
-        {
-            assert_eq!(offset_seconds, 0);
-            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
+        if let Value::DateTime { epoch, offset } = result {
+            assert_eq!(offset, UtcOffset::UTC);
+            let (y, m, d, h, mi, s) = epoch.to_calendar();
             assert_eq!((y, m, d, h, mi, s), (2026, 1, 1, 1, 30, 0));
         } else {
             panic!("expected DateTime");
@@ -1504,7 +1518,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
             right: Box::new(Expression::DateTime {
                 year: 2026,
@@ -1513,7 +1527,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
         };
 
@@ -1521,7 +1535,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert: 24 hours = 86400 seconds
-        assert_eq!(result.unwrap(), Value::DurationTime(86400));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(86400))
+        );
     }
 
     #[test]
@@ -1536,7 +1553,7 @@ mod tests {
                 hour: 9,
                 minute: 0,
                 second: 0,
-                offset_seconds: 9 * 3600,
+                offset: UtcOffset::from_seconds(9 * 3600).unwrap(),
             }),
             right: Box::new(Expression::DurationTime {
                 hours: 1,
@@ -1549,8 +1566,8 @@ mod tests {
         let result = eval(expression).unwrap();
 
         // Assert: offset preserved
-        if let Value::DateTime { offset_seconds, .. } = result {
-            assert_eq!(offset_seconds, 9 * 3600);
+        if let Value::DateTime { offset, .. } = result {
+            assert_eq!(offset, UtcOffset::from_seconds(9 * 3600).unwrap());
         } else {
             panic!("expected DateTime");
         }
@@ -1598,7 +1615,10 @@ mod tests {
         let result = eval(expression);
 
         // Assert
-        assert_eq!(result.unwrap(), Value::DurationTime(3600));
+        assert_eq!(
+            result.unwrap(),
+            Value::DurationTime(DurationSeconds::from_seconds(3600))
+        );
     }
 
     #[test]
@@ -1613,7 +1633,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
             right: Box::new(Expression::DateTime {
                 year: 2026,
@@ -1622,7 +1642,7 @@ mod tests {
                 hour: 0,
                 minute: 0,
                 second: 0,
-                offset_seconds: 0,
+                offset: UtcOffset::from_seconds(0).unwrap(),
             }),
         };
 
@@ -1678,13 +1698,9 @@ mod tests {
         let result = eval(expression).unwrap();
 
         // Assert
-        if let Value::DateTime {
-            epoch_seconds,
-            offset_seconds,
-        } = result
-        {
-            assert_eq!(offset_seconds, 0);
-            let (y, m, d, h, mi, s) = domain::calendar::epoch_seconds_to_calendar(epoch_seconds);
+        if let Value::DateTime { epoch, offset } = result {
+            assert_eq!(offset, UtcOffset::UTC);
+            let (y, m, d, h, mi, s) = epoch.to_calendar();
             assert_eq!((y, m, d, h, mi, s), (2026, 6, 15, 12, 30, 0));
         } else {
             panic!("expected DateTime");
@@ -1705,13 +1721,9 @@ mod tests {
         let result = eval(expression).unwrap();
 
         // Assert
-        if let Value::DateTime {
-            epoch_seconds,
-            offset_seconds,
-        } = result
-        {
-            assert!(epoch_seconds > 1_700_000_000); // after 2023
-            assert_eq!(offset_seconds, 0); // UTC
+        if let Value::DateTime { epoch, offset } = result {
+            assert!(epoch.seconds() > 1_700_000_000); // after 2023
+            assert!(offset.is_utc());
         } else {
             panic!("expected DateTime");
         }
@@ -1729,13 +1741,9 @@ mod tests {
         let result = eval(expression).unwrap();
 
         // Assert
-        if let Value::DateTime {
-            epoch_seconds,
-            offset_seconds,
-        } = result
-        {
-            assert_eq!(epoch_seconds % 86400, 0); // midnight
-            assert_eq!(offset_seconds, 0);
+        if let Value::DateTime { epoch, offset } = result {
+            assert_eq!(epoch.seconds() % 86400, 0); // midnight
+            assert!(offset.is_utc());
         } else {
             panic!("expected DateTime");
         }
