@@ -102,3 +102,25 @@ fn eval_prod_overflow_is_error() {
         CccError::eval("prod: integer overflow".to_string())
     );
 }
+
+#[test]
+fn eval_variance_of_durations_reports_unsupported_elements() {
+    // Arrange: elements are homogeneous, so the error must name the unsupported
+    // type instead of claiming a type mismatch
+    let expression = call(
+        "variance",
+        vec![list(vec![
+            crate::test_fixture::duration_literal(0, 1, 30),
+            crate::test_fixture::duration_literal(0, 0, 30),
+        ])],
+    );
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("variance: expected numeric list elements, got duration".to_string())
+    );
+}
