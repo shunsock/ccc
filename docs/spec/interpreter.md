@@ -144,7 +144,7 @@ This is stored as:
 The evaluator produces `CccError::Eval` for runtime errors:
 
 - Division/modulo by zero
-- Integer negation overflow
+- Integer overflow (addition, subtraction, multiplication, power, negation)
 - Invalid datetime components
 - Unknown function names
 - Argument count mismatches

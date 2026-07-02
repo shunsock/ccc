@@ -43,6 +43,21 @@ fn power_float_base() {
     assert_eq!(result.unwrap(), Value::Float(8.0));
 }
 
+#[test]
+fn power_overflow_reports_error() {
+    // Arrange: 2 ** 64 exceeds i64::MAX
+    let expression = pow(int(2), int(64));
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("integer overflow: 2 ** 64".to_string())
+    );
+}
+
 // --- Unary operators ---
 
 #[test]

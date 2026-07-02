@@ -2,15 +2,43 @@ use domain::ast::BinaryOperation;
 use domain::error::CccError;
 use domain::value::Value;
 
+// Wrapping would silently return a wrong value (e.g. i64::MAX + 1 → i64::MIN),
+// so every integer operation that can overflow reports an eval error instead,
+// mirroring the checked unary negation and datetime range checks.
+fn integer_overflow_error(left: i64, operator_symbol: &str, right: i64) -> CccError {
+    CccError::eval(format!(
+        "integer overflow: {left} {operator_symbol} {right}"
+    ))
+}
+
+fn checked_integer(
+    checked_result: Option<i64>,
+    left: i64,
+    operator_symbol: &str,
+    right: i64,
+) -> Result<Value, CccError> {
+    checked_result
+        .map(Value::Integer)
+        .ok_or_else(|| integer_overflow_error(left, operator_symbol, right))
+}
+
+fn evaluate_integer_power(left: i64, right: i64) -> Result<Value, CccError> {
+    if right >= 0 && right <= u32::MAX as i64 {
+        checked_integer(left.checked_pow(right as u32), left, "**", right)
+    } else {
+        Ok(Value::Float((left as f64).powf(right as f64)))
+    }
+}
+
 pub(super) fn evaluate_binary_integer(
     operator: &BinaryOperation,
     left: i64,
     right: i64,
 ) -> Result<Value, CccError> {
     match operator {
-        BinaryOperation::Add => Ok(Value::Integer(left + right)),
-        BinaryOperation::Subtract => Ok(Value::Integer(left - right)),
-        BinaryOperation::Multiply => Ok(Value::Integer(left * right)),
+        BinaryOperation::Add => checked_integer(left.checked_add(right), left, "+", right),
+        BinaryOperation::Subtract => checked_integer(left.checked_sub(right), left, "-", right),
+        BinaryOperation::Multiply => checked_integer(left.checked_mul(right), left, "*", right),
         BinaryOperation::Divide => {
             if right == 0 {
                 return Err(CccError::eval(format!(
@@ -30,13 +58,7 @@ pub(super) fn evaluate_binary_integer(
             }
             Ok(Value::Integer(left % right))
         }
-        BinaryOperation::Power => {
-            if right >= 0 && right <= u32::MAX as i64 {
-                Ok(Value::Integer(left.pow(right as u32)))
-            } else {
-                Ok(Value::Float((left as f64).powf(right as f64)))
-            }
-        }
+        BinaryOperation::Power => evaluate_integer_power(left, right),
     }
 }
 
