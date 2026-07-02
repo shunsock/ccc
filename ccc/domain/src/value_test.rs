@@ -379,4 +379,29 @@ mod tests {
         // Assert
         assert_eq!(result, "0");
     }
+
+    #[test]
+    fn display_timestamp_beyond_i64_keeps_float_value() {
+        // Arrange: 1e30 has no fractional part but exceeds i64, so the
+        // integer path would saturate it to 9223372036854775807
+        let value = Value::Timestamp(1e30);
+
+        // Act
+        let result = format!("{value}");
+
+        // Assert
+        assert_eq!(result, "1000000000000000000000000000000");
+    }
+
+    #[test]
+    fn display_timestamp_infinity() {
+        // Arrange
+        let value = Value::Timestamp(f64::INFINITY);
+
+        // Act
+        let result = format!("{value}");
+
+        // Assert
+        assert_eq!(result, "inf");
+    }
 }

@@ -59,8 +59,12 @@ fn format_datetime(
 }
 
 fn format_timestamp(f: &mut std::fmt::Formatter<'_>, ts: f64) -> std::fmt::Result {
-    if ts == ts.trunc() {
-        // Display as integer when there's no fractional part
+    // `ts as i64` saturates outside the i64 range (and for infinities), which
+    // would render e.g. 1e30 as 9223372036854775807. Take the integer form only
+    // when the value actually fits; `<` also excludes 2^63 itself because
+    // i64::MAX as f64 rounds up to 2^63 exactly.
+    let fits_in_i64 = ts >= i64::MIN as f64 && ts < i64::MAX as f64;
+    if ts == ts.trunc() && fits_in_i64 {
         write!(f, "{}", ts as i64)
     } else {
         write!(f, "{ts}")
