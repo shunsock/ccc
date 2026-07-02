@@ -7,7 +7,9 @@ pub struct Cli {
     pub command: Option<Command>,
 
     /// Expression to evaluate (e.g. 1 + 2)
-    #[arg(trailing_var_arg = true)]
+    // CONSTRAINT: clap は先頭ハイフンの位置引数を未知のフラグとして拒否するため、
+    // 単項マイナスで始まる式 (例: "-5 + 3") には allow_hyphen_values が必要
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     pub expression: Vec<String>,
 }
 

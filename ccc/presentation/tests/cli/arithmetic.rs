@@ -112,7 +112,7 @@ fn evaluate_float() {
 
 #[test]
 fn evaluate_negative_unary() {
-    // Arrange: leading "-" is interpreted as a flag by clap, so use "--" separator
+    // Arrange: the "--" separator remains supported alongside bare hyphen expressions
     let mut cmd = ccc();
 
     // Act
@@ -120,6 +120,42 @@ fn evaluate_negative_unary() {
 
     // Assert
     result.success().stdout("-2\n");
+}
+
+#[test]
+fn evaluate_negative_unary_without_separator() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("-5 + 3").assert();
+
+    // Assert
+    result.success().stdout("-2\n");
+}
+
+#[test]
+fn evaluate_double_negate_without_separator() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("--5").assert();
+
+    // Assert
+    result.success().stdout("5\n");
+}
+
+#[test]
+fn evaluate_negative_duration_without_separator() {
+    // Arrange
+    let mut cmd = ccc();
+
+    // Act
+    let result = cmd.arg("-1:30:00").assert();
+
+    // Assert
+    result.success().stdout("-1:30:00\n");
 }
 
 #[test]
