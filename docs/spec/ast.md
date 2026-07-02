@@ -53,7 +53,7 @@ Operators:
 | Multiply | `*` | Medium | Left |
 | Divide | `/` | Medium | Left |
 | Modulo | `%` | Medium | Left |
-| Power | `^` | High | Right |
+| Power | `^` or `**` | High | Right |
 
 Example: `2 + 3 * 4` →
 
@@ -135,7 +135,7 @@ Example: `3.7 as int` → `TypeCast { operand: Float(3.7), target_type: Integer 
 
 ### DurationTime
 
-A time duration literal in `HH:MM:SS` format.
+A time duration literal in `HH:MM:SS` format, or `MM:SS` with hours = 0.
 
 ```rust
 Expression::DurationTime {
@@ -175,7 +175,7 @@ The parser uses PEG (Parsing Expression Grammar) via [pest](https://pest.rs/).
 
 1. **expression** - `term ((+ | -) term)*`
 2. **term** - `power ((* | / | %) power)*`
-3. **power** - `unary (^ unary)*` (right-associative)
+3. **power** - `unary ((^ | **) unary)*` (right-associative)
 4. **unary** - `(+ | -)* postfix`
 5. **postfix** - `atom (method_call | as cast_type)*` (method calls and `as` casts bind tighter than unary operators)
 6. **atom** - function call, datetime literal, duration literal, number, list, or parenthesized expression
@@ -186,10 +186,15 @@ The parser uses PEG (Parsing Expression Grammar) via [pest](https://pest.rs/).
 |------|--------|---------|
 | Integer | `[0-9]+` | `42` |
 | Float | `[0-9]+.[0-9]+` | `3.14` |
-| Duration | `[0-9]+:[0-9]{2}:[0-9]{2}` | `1:30:00` |
+| Duration | `[0-9]+:[0-9]{2}:[0-9]{2}` (H:MM:SS) | `1:30:00` |
+| Duration | `[0-9]+:[0-9]{2}` (MM:SS, hours = 0) | `5:30` |
 | DateTime | `YYYY-MM-DDTHH:MM:SS[tz]` | `2025-12-25T15:30:00Z` |
 
 DateTime timezone formats: `Z`, `+09:00`, `-05`, `+09`
+
+### Method Calls
+
+A postfix method call `x.f(a, b)` desugars to the function call `f(x, a, b)` at parse time; the AST contains only `FunctionCall` nodes. Calls chain left to right: `[1, 2, 3].tail().sum()` is `sum(tail([1, 2, 3]))`.
 
 ### Whitespace
 

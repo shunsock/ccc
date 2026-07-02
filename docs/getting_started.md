@@ -83,6 +83,12 @@ echo "10" | ccc "+ 5"
 # 15
 ```
 
+### List built-in functions
+
+```bash
+ccc show builtin
+```
+
 ## What's Next
 
 - [Examples](example.md) - More usage examples
