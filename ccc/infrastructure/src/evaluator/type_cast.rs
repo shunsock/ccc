@@ -26,6 +26,11 @@ pub(super) fn evaluate_type_cast(
             ))),
         },
         CastTargetType::DateTime => match value {
+            // NaN would silently become epoch 0 through `as i64`; reject it upfront.
+            // Infinities saturate and then fail the EpochSeconds range check below.
+            Value::Timestamp(ts) if ts.is_nan() => {
+                Err(CccError::eval("cannot cast NaN timestamp to datetime"))
+            }
             Value::Timestamp(ts) => EpochSeconds::from_seconds(*ts as i64)
                 .map(|epoch| Value::DateTime {
                     epoch,
