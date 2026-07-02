@@ -20,7 +20,12 @@ ccc "10 % 3"
 
 ccc "2 ^ 10"
 # 1024
+
+ccc "2 ** 10"
+# 1024
 ```
+
+`**` is a synonym for `^`; both mean power.
 
 ## Operator Precedence
 
@@ -100,7 +105,55 @@ ccc "tail([10, 20, 30])"
 # [20, 30]
 ```
 
+## Statistics Functions
+
+```bash
+ccc "mean([1, 2, 3])"
+# 2
+
+ccc "median([1, 2, 3, 4])"
+# 2.5
+
+ccc "variance([1, 2, 3])"
+# 0.6666666666666666
+
+ccc "min([3, 1, 2])"
+# 1
+
+ccc "max([3, 1, 2])"
+# 3
+```
+
+`mean`, `median`, `min`, and `max` also work on duration lists:
+
+```bash
+ccc "mean([1:30:00, 0:30:00])"
+# 1:00:00
+```
+
+## Method Chains
+
+Any function can be called postfix: `x.f(a)` desugars to `f(x, a)`.
+
+```bash
+ccc "[1, 2, 3].sum()"
+# 6
+
+ccc "[1, 2, 3].tail().sum()"
+# 5
+
+ccc "2.5.floor()"
+# 2
+```
+
 ## Duration Arithmetic
+
+Durations are written as `H:MM:SS`. A two-part literal is `MM:SS` (minutes and seconds):
+
+```bash
+ccc "5:30"
+# 0:05:30
+```
 
 ```bash
 ccc "1:30:00 + 0:45:00"
@@ -188,6 +241,14 @@ printf "1 + 1\n2 + 2\n3 + 3" | ccc
 # 2
 # 4
 # 6
+```
+
+## Show Built-in Functions
+
+List every built-in function with its signature:
+
+```bash
+ccc show builtin
 ```
 
 ## REPL

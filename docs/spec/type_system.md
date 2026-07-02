@@ -42,11 +42,12 @@ A sequence of values. Elements can be of any type.
 
 ### DurationTime
 
-A time duration stored as total seconds (signed `i64`). Represented in `HH:MM:SS` format.
+A time duration stored as total seconds (signed `i64`). Displayed in `H:MM:SS` format. Literals accept `H:MM:SS` or the two-part `MM:SS` form (minutes and seconds).
 
 ```
 1:30:00
 0:05:30
+5:30
 ```
 
 Negative durations are displayed with a leading `-`:
@@ -155,8 +156,13 @@ All require a numeric argument (Integer or Float) and return Float.
 | `prod` | List | Unknown |
 | `head` | List | Unknown |
 | `tail` | List | Unknown |
+| `mean` | List | Unknown |
+| `variance` | List | Unknown |
+| `median` | List | Unknown |
+| `max` | List | Unknown |
+| `min` | List | Unknown |
 
-`sum`, `prod`, `head`, `tail` return Unknown because element types are not tracked statically.
+All list functions except `len` return Unknown because element types are not tracked statically. At runtime, `mean`/`median`/`variance` return Float for numeric lists, `max`/`min` preserve the element type, and `mean`/`median`/`max`/`min` also accept duration lists (returning DurationTime).
 
 ### Time Constructors
 

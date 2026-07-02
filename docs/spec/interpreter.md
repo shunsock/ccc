@@ -93,12 +93,17 @@ All accept a numeric argument (Integer or Float) and return Float.
 | Function | Description | Error Condition |
 |----------|-------------|-----------------|
 | `len(list)` | Number of elements | |
-| `sum(list)` | Sum of numeric elements | Non-numeric elements |
+| `sum(list)` | Sum of numeric or duration elements | Mixed element types |
 | `prod(list)` | Product of numeric elements | Non-numeric elements |
 | `head(list)` | First element | Empty list |
 | `tail(list)` | All elements except the first | Empty list |
+| `mean(list)` | Arithmetic mean of numeric or duration elements | Empty list, mixed element types |
+| `median(list)` | Median of numeric or duration elements | Empty list, mixed element types |
+| `variance(list)` | Population variance of numeric elements | Empty list, non-numeric elements |
+| `max(list)` | Largest element (numeric or duration) | Empty list, mixed element types |
+| `min(list)` | Smallest element (numeric or duration) | Empty list, mixed element types |
 
-`sum` and `prod` return Integer if all elements are Integer, otherwise Float.
+`sum` and `prod` return Integer if all elements are Integer, otherwise Float. `mean`, `median`, and `variance` return Float for numeric lists; `max` and `min` preserve the element type. `sum`, `mean`, `median`, `max`, and `min` return DurationTime for duration lists.
 
 ### Time Constructors
 

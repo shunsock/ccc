@@ -77,7 +77,7 @@ Nested expressions in arguments are also type-checked.
 
 ### List Functions
 
-`len`, `sum`, `prod`, `head`, `tail`:
+`len`, `sum`, `prod`, `head`, `tail`, `mean`, `variance`, `median`, `max`, `min`:
 
 - Exactly 1 argument
 - Argument must be List
