@@ -141,3 +141,45 @@ fn eval_round_trip_datetime_timestamp() {
         panic!("expected DateTime");
     }
 }
+
+#[test]
+fn cast_nan_timestamp_to_datetime_is_error() {
+    // Arrange: Timestamp(NaN) as datetime — NaN must not become epoch 0
+    use crate::test_fixture::{cast, float};
+    use domain::ast::CastTargetType;
+    use domain::error::CccError;
+    let expression = cast(
+        call("Timestamp", vec![float(f64::NAN)]),
+        CastTargetType::DateTime,
+    );
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("cannot cast NaN timestamp to datetime".to_string())
+    );
+}
+
+#[test]
+fn cast_infinite_timestamp_to_datetime_is_error() {
+    // Arrange
+    use crate::test_fixture::{cast, float};
+    use domain::ast::CastTargetType;
+    use domain::error::CccError;
+    let expression = cast(
+        call("Timestamp", vec![float(f64::INFINITY)]),
+        CastTargetType::DateTime,
+    );
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("timestamp out of datetime range".to_string())
+    );
+}
