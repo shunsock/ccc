@@ -1,6 +1,7 @@
+use domain::error::CccError;
 use domain::value::Value;
 
-use crate::test_fixture::{add, int, list, mul};
+use crate::test_fixture::{add, call, int, list, mul};
 
 use super::eval;
 
@@ -67,5 +68,37 @@ fn eval_nested_list() {
             Value::List(vec![Value::Integer(1)]),
             Value::List(vec![Value::Integer(2)]),
         ])
+    );
+}
+
+// --- Aggregate overflow ---
+
+#[test]
+fn eval_sum_overflow_is_error() {
+    // Arrange: sum([i64::MAX, 1])
+    let expression = call("sum", vec![list(vec![int(i64::MAX), int(1)])]);
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("sum: integer overflow".to_string())
+    );
+}
+
+#[test]
+fn eval_prod_overflow_is_error() {
+    // Arrange: prod([i64::MAX, 2])
+    let expression = call("prod", vec![list(vec![int(i64::MAX), int(2)])]);
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("prod: integer overflow".to_string())
     );
 }

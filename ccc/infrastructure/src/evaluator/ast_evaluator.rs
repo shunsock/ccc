@@ -55,9 +55,9 @@ pub(super) fn evaluate_expression(expression: &Expression) -> Result<Value, CccE
             hours,
             minutes,
             seconds,
-        } => Ok(Value::DurationTime(DurationSeconds::from_hms(
-            *hours, *minutes, *seconds,
-        ))),
+        } => DurationSeconds::from_hms(*hours, *minutes, *seconds)
+            .map(Value::DurationTime)
+            .ok_or_else(|| CccError::eval("duration out of range")),
         Expression::DateTime {
             year,
             month,
