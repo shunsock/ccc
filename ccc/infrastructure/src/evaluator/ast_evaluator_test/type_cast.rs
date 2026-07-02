@@ -1,4 +1,5 @@
 use domain::ast::CastTargetType;
+use domain::error::CccError;
 use domain::value::Value;
 
 use crate::test_fixture::{cast, float, int, neg};
@@ -89,4 +90,51 @@ fn cast_integer_to_int_is_identity() {
 
     // Assert
     assert_eq!(result.unwrap(), Value::Integer(3));
+}
+
+// --- Non-finite and out-of-range float to int ---
+
+#[test]
+fn cast_nan_to_int_reports_error() {
+    // Arrange
+    let expression = cast(float(f64::NAN), CastTargetType::Integer);
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("cannot cast NaN to int".to_string())
+    );
+}
+
+#[test]
+fn cast_infinity_to_int_reports_error() {
+    // Arrange
+    let expression = cast(float(f64::INFINITY), CastTargetType::Integer);
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("cannot cast inf to int".to_string())
+    );
+}
+
+#[test]
+fn cast_out_of_range_float_to_int_reports_error() {
+    // Arrange: 1e19 > i64::MAX
+    let expression = cast(float(1e19), CastTargetType::Integer);
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("float out of int range: 10000000000000000000".to_string())
+    );
 }

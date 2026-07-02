@@ -173,7 +173,7 @@ The `as` operator performs explicit type conversions:
 | Source | Target | Behavior |
 |--------|--------|----------|
 | Integer | Float | Widen to float |
-| Float | Integer | Truncate toward zero |
+| Float | Integer | Truncate toward zero; NaN, infinities, and values outside the i64 range are an eval error |
 | DateTime | Timestamp | Convert to epoch seconds |
 | Timestamp | DateTime | Convert to UTC datetime |
 
