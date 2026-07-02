@@ -210,17 +210,19 @@ ccc> exit
 ### Parse Error
 
 ```bash
-ccc "2 + + 3"
-#   2 + + 3
+ccc "2 + * 3"
+#   2 + * 3
 #       ^
-#   error: parse error: expected number, function call, or '('
+#   error: parse error: expected number, function call, list, or '('
 ```
+
+Note: `2 + + 3` is not a parse error — the second `+` is a unary plus, so it evaluates to `5`.
 
 ### Type Error
 
 ```bash
 ccc "1 + 1:30:00"
-#   error: type check: unsupported operation: integer + duration
+#   error: type error: unsupported operation: integer + duration
 ```
 
 ### Division by Zero

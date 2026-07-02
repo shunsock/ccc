@@ -131,7 +131,7 @@ The `Unknown` type acts as a wildcard during type checking:
 
 - Binary operations with Unknown on either side pass through as Unknown
 - Functions that return Unknown (e.g., `head`, `tail`, `sum`, `prod`) allow any subsequent operation
-- Unknown function names pass through as Unknown (the evaluator catches them at runtime)
+- Undefined function names are rejected at type-check time with `undefined function: <name>`
 
 This allows operations like `head([1, 2, 3]) + 1` to pass type checking, deferring the actual type validation to the evaluator.
 

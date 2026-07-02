@@ -118,6 +118,21 @@ Expression::List(Vec<Expression>)
 
 Example: `[1, 2, 3]` → `List([Integer(1), Integer(2), Integer(3)])`
 
+### TypeCast
+
+An explicit type conversion via the `as` operator.
+
+```rust
+Expression::TypeCast {
+    operand: Box<Expression>,
+    target_type: CastTargetType,
+}
+```
+
+`CastTargetType` is one of `Integer`, `Float`, `Timestamp`, `DateTime`.
+
+Example: `3.7 as int` → `TypeCast { operand: Float(3.7), target_type: Integer }`
+
 ### DurationTime
 
 A time duration literal in `HH:MM:SS` format.
@@ -144,11 +159,13 @@ Expression::DateTime {
     hour: u8,
     minute: u8,
     second: u8,
-    offset_seconds: i32,
+    offset: UtcOffset,
 }
 ```
 
-Example: `2025-12-25T15:30:00+09:00` → `DateTime { year: 2025, month: 12, day: 25, hour: 15, minute: 30, second: 0, offset_seconds: 32400 }`
+The offset is a `UtcOffset` value object validated at parse time (see `domain/src/time/utc_offset.rs`).
+
+Example: `2025-12-25T15:30:00+09:00` → `DateTime { year: 2025, month: 12, day: 25, hour: 15, minute: 30, second: 0, offset: UtcOffset(+09:00) }`
 
 ## Grammar
 
@@ -159,8 +176,9 @@ The parser uses PEG (Parsing Expression Grammar) via [pest](https://pest.rs/).
 1. **expression** - `term ((+ | -) term)*`
 2. **term** - `power ((* | / | %) power)*`
 3. **power** - `unary (^ unary)*` (right-associative)
-4. **unary** - `(+ | -)? atom`
-5. **atom** - function call, datetime literal, duration literal, number, list, or parenthesized expression
+4. **unary** - `(+ | -)* postfix`
+5. **postfix** - `atom (method_call | as cast_type)*` (method calls and `as` casts bind tighter than unary operators)
+6. **atom** - function call, datetime literal, duration literal, number, list, or parenthesized expression
 
 ### Literal Formats
 

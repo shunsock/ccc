@@ -51,8 +51,8 @@ cargo clippy
 
 Function names must follow the [Naming Convention](spec/naming_convention.md). In short: regular functions use **snake_case**, constructors use **PascalCase**.
 
-1. Add the function name to the match in `ccc/infrastructure/src/evaluator/builtin.rs`
-2. Add type checking rules in `ccc/infrastructure/src/type_checker/ast_type_checker.rs`
+1. Add the function name to the match in `ccc/infrastructure/src/evaluator/builtin/mod.rs`
+2. Add type checking rules in `ccc/infrastructure/src/type_checker/function_rule.rs`
 3. Add tests for both the evaluator and type checker
 4. Document the function in `docs/spec/interpreter.md` and `docs/spec/type_system.md`
 
@@ -64,7 +64,7 @@ Function names must follow the [Naming Convention](spec/naming_convention.md). I
    - Parser: `ccc/infrastructure/src/parser/pest_based_parser.rs`
    - Type checker: `ccc/infrastructure/src/type_checker/ast_type_checker.rs`
    - Evaluator: `ccc/infrastructure/src/evaluator/ast_evaluator.rs`
-4. Add the display format in `ccc/domain/src/value.rs` if a new Value variant is needed
+4. Add the display format in `ccc/domain/src/value_display.rs` if a new Value variant is needed
 5. Add tests at each layer
 
 ## Pull Requests
