@@ -45,7 +45,7 @@ fn power_float_base() {
 
 #[test]
 fn power_overflow_reports_error() {
-    // Arrange: 2 ** 64 exceeds i64::MAX
+    // Arrange: 2 ^ 64 exceeds i64::MAX; the message uses the canonical `^` symbol
     let expression = pow(int(2), int(64));
 
     // Act
@@ -54,7 +54,7 @@ fn power_overflow_reports_error() {
     // Assert
     assert_eq!(
         result.unwrap_err(),
-        CccError::eval("integer overflow: 2 ** 64".to_string())
+        CccError::eval("integer overflow: 2 ^ 64".to_string())
     );
 }
 

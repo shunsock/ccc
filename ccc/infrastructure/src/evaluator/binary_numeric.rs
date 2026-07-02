@@ -22,9 +22,9 @@ fn checked_integer(
         .ok_or_else(|| integer_overflow_error(left, operator_symbol, right))
 }
 
-fn evaluate_integer_power(left: i64, right: i64) -> Result<Value, CccError> {
+fn evaluate_integer_power(left: i64, right: i64, symbol: &str) -> Result<Value, CccError> {
     if right >= 0 && right <= u32::MAX as i64 {
-        checked_integer(left.checked_pow(right as u32), left, "**", right)
+        checked_integer(left.checked_pow(right as u32), left, symbol, right)
     } else {
         Ok(Value::Float((left as f64).powf(right as f64)))
     }
@@ -35,10 +35,12 @@ pub(super) fn evaluate_binary_integer(
     left: i64,
     right: i64,
 ) -> Result<Value, CccError> {
+    // operator.symbol() keeps overflow messages consistent with type-check errors.
+    let symbol = operator.symbol();
     match operator {
-        BinaryOperation::Add => checked_integer(left.checked_add(right), left, "+", right),
-        BinaryOperation::Subtract => checked_integer(left.checked_sub(right), left, "-", right),
-        BinaryOperation::Multiply => checked_integer(left.checked_mul(right), left, "*", right),
+        BinaryOperation::Add => checked_integer(left.checked_add(right), left, symbol, right),
+        BinaryOperation::Subtract => checked_integer(left.checked_sub(right), left, symbol, right),
+        BinaryOperation::Multiply => checked_integer(left.checked_mul(right), left, symbol, right),
         BinaryOperation::Divide => {
             if right == 0 {
                 return Err(CccError::eval(format!(
@@ -58,7 +60,7 @@ pub(super) fn evaluate_binary_integer(
             }
             Ok(Value::Integer(left % right))
         }
-        BinaryOperation::Power => evaluate_integer_power(left, right),
+        BinaryOperation::Power => evaluate_integer_power(left, right, symbol),
     }
 }
 
