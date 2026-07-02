@@ -44,6 +44,40 @@ fn eval_timestamp_constructor_wrong_arg_count() {
     assert!(result.is_err());
 }
 
+#[test]
+fn eval_timestamp_constructor_rejects_nan() {
+    // Arrange
+    use crate::test_fixture::float;
+    use domain::error::CccError;
+    let expression = call("Timestamp", vec![float(f64::NAN)]);
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("Timestamp: expected finite number, got NaN".to_string())
+    );
+}
+
+#[test]
+fn eval_timestamp_constructor_rejects_infinity() {
+    // Arrange
+    use crate::test_fixture::float;
+    use domain::error::CccError;
+    let expression = call("Timestamp", vec![float(f64::INFINITY)]);
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("Timestamp: expected finite number, got inf".to_string())
+    );
+}
+
 // --- Timestamp arithmetic ---
 
 #[test]
@@ -144,7 +178,9 @@ fn eval_round_trip_datetime_timestamp() {
 
 #[test]
 fn cast_nan_timestamp_to_datetime_is_error() {
-    // Arrange: Timestamp(NaN) as datetime — NaN must not become epoch 0
+    // Arrange: the constructor now rejects NaN first, so the pipeline still
+    // cannot turn "not a number" into epoch 0 (the cast guard remains as
+    // defense in depth)
     use crate::test_fixture::{cast, float};
     use domain::ast::CastTargetType;
     use domain::error::CccError;
@@ -159,7 +195,7 @@ fn cast_nan_timestamp_to_datetime_is_error() {
     // Assert
     assert_eq!(
         result.unwrap_err(),
-        CccError::eval("cannot cast NaN timestamp to datetime".to_string())
+        CccError::eval("Timestamp: expected finite number, got NaN".to_string())
     );
 }
 
@@ -180,6 +216,6 @@ fn cast_infinite_timestamp_to_datetime_is_error() {
     // Assert
     assert_eq!(
         result.unwrap_err(),
-        CccError::eval("timestamp out of datetime range".to_string())
+        CccError::eval("Timestamp: expected finite number, got inf".to_string())
     );
 }

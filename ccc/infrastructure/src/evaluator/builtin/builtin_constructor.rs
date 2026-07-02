@@ -71,5 +71,12 @@ pub fn datetime_constructor(arguments: &[Value]) -> Result<Value, CccError> {
 pub fn timestamp_constructor(arguments: &[Value]) -> Result<Value, CccError> {
     let arg = expect_single_arg("Timestamp", arguments)?;
     let n = to_f64(arg)?;
+    // NaN/inf are not points in time; rejecting them here keeps every
+    // downstream consumer (casts, arithmetic, display) free of non-finite input.
+    if !n.is_finite() {
+        return Err(CccError::eval(format!(
+            "Timestamp: expected finite number, got {n}"
+        )));
+    }
     Ok(Value::Timestamp(n))
 }
