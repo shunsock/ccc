@@ -39,12 +39,13 @@ pub fn collect_integers(name: &str, elements: &[Value]) -> Result<Vec<i64>, CccE
 }
 
 /// Fold numeric list elements with an accumulator, preserving int/float distinction.
+/// The integer op is checked: overflow reports an eval error instead of wrapping.
 pub fn fold_numbers(
     name: &str,
     elements: &[Value],
     int_identity: i64,
     float_identity: f64,
-    int_op: fn(i64, i64) -> i64,
+    int_op: fn(i64, i64) -> Option<i64>,
     float_op: fn(f64, f64) -> f64,
 ) -> Result<Value, CccError> {
     let mut has_float = false;
@@ -54,7 +55,8 @@ pub fn fold_numbers(
     for elem in elements {
         match elem {
             Value::Integer(n) => {
-                int_acc = int_op(int_acc, *n);
+                int_acc = int_op(int_acc, *n)
+                    .ok_or_else(|| CccError::eval(format!("{name}: integer overflow")))?;
                 float_acc = float_op(float_acc, *n as f64);
             }
             Value::Float(n) => {

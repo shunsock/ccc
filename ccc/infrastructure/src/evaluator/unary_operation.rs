@@ -9,7 +9,10 @@ pub(super) fn evaluate_unary(operator: &UnaryOperation, value: &Value) -> Result
             .map(Value::Integer)
             .ok_or_else(|| CccError::eval("integer negation overflow".to_string())),
         (UnaryOperation::Negate, Value::Float(n)) => Ok(Value::Float(-n)),
-        (UnaryOperation::Negate, Value::DurationTime(s)) => Ok(Value::DurationTime(-*s)),
+        (UnaryOperation::Negate, Value::DurationTime(s)) => s
+            .checked_neg()
+            .map(Value::DurationTime)
+            .ok_or_else(|| CccError::eval("duration negation overflow".to_string())),
         (UnaryOperation::Negate, v) => {
             Err(CccError::eval(format!("cannot negate a {}", v.type_name())))
         }

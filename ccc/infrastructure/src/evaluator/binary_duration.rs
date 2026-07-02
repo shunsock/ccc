@@ -5,17 +5,24 @@ use domain::value::Value;
 
 use super::binary_operation::unsupported_binary_op;
 
+fn duration_out_of_range() -> CccError {
+    CccError::eval("duration out of range")
+}
+
 /// DurationTime ± DurationTime → DurationTime
 pub(super) fn combine_durations(
     operator: &BinaryOperation,
     left: DurationSeconds,
     right: DurationSeconds,
 ) -> Result<Value, CccError> {
-    match operator {
-        BinaryOperation::Add => Ok(Value::DurationTime(left + right)),
-        BinaryOperation::Subtract => Ok(Value::DurationTime(left - right)),
-        _ => Err(unsupported_binary_op(operator, "duration", "duration")),
-    }
+    let combined = match operator {
+        BinaryOperation::Add => left.checked_add(right),
+        BinaryOperation::Subtract => left.checked_sub(right),
+        _ => return Err(unsupported_binary_op(operator, "duration", "duration")),
+    };
+    combined
+        .map(Value::DurationTime)
+        .ok_or_else(duration_out_of_range)
 }
 
 /// DurationTime */÷ Integer → DurationTime
@@ -25,12 +32,18 @@ pub(super) fn scale_duration_by_integer(
     scalar: i64,
 ) -> Result<Value, CccError> {
     match operator {
-        BinaryOperation::Multiply => Ok(Value::DurationTime(duration * scalar)),
+        BinaryOperation::Multiply => duration
+            .checked_mul(scalar)
+            .map(Value::DurationTime)
+            .ok_or_else(duration_out_of_range),
         BinaryOperation::Divide => {
             if scalar == 0 {
                 return Err(CccError::eval("division by zero"));
             }
-            Ok(Value::DurationTime(duration / scalar))
+            duration
+                .checked_div(scalar)
+                .map(Value::DurationTime)
+                .ok_or_else(duration_out_of_range)
         }
         _ => Err(unsupported_binary_op(operator, "duration", "integer")),
     }
@@ -43,7 +56,10 @@ pub(super) fn multiply_integer_by_duration(
     duration: DurationSeconds,
 ) -> Result<Value, CccError> {
     match operator {
-        BinaryOperation::Multiply => Ok(Value::DurationTime(duration * scalar)),
+        BinaryOperation::Multiply => duration
+            .checked_mul(scalar)
+            .map(Value::DurationTime)
+            .ok_or_else(duration_out_of_range),
         _ => Err(unsupported_binary_op(operator, "integer", "duration")),
     }
 }

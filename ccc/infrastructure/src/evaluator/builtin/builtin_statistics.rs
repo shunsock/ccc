@@ -10,7 +10,10 @@ pub fn list_mean(arguments: &[Value]) -> Result<Value, CccError> {
     match elements.first() {
         Some(Value::DurationTime(_)) => {
             let secs = collect_seconds("mean", elements)?;
-            let total: i64 = secs.iter().sum();
+            let total = secs
+                .iter()
+                .try_fold(0i64, |acc, s| acc.checked_add(*s))
+                .ok_or_else(|| CccError::eval("mean: duration overflow"))?;
             Ok(Value::DurationTime(DurationSeconds::from_seconds(
                 total / secs.len() as i64,
             )))
@@ -65,6 +68,10 @@ fn median_sorted_i64(secs: &[i64]) -> i64 {
     if n % 2 == 1 {
         secs[n / 2]
     } else {
-        (secs[n / 2 - 1] + secs[n / 2]) / 2
+        let low = secs[n / 2 - 1];
+        let high = secs[n / 2];
+        // low + (high - low) / 2 cannot overflow because low <= high after sorting,
+        // unlike (low + high) / 2 whose intermediate sum can leave the i64 range.
+        low + (high - low) / 2
     }
 }

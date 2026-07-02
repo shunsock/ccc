@@ -28,10 +28,9 @@ pub fn duration_time_constructor(arguments: &[Value]) -> Result<Value, CccError>
         )
     };
 
-    let total_seconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
-    Ok(Value::DurationTime(DurationSeconds::from_seconds(
-        total_seconds,
-    )))
+    DurationSeconds::from_components(days, hours, minutes, seconds)
+        .map(Value::DurationTime)
+        .ok_or_else(|| CccError::eval("DurationTime: duration out of range"))
 }
 
 pub fn datetime_constructor(arguments: &[Value]) -> Result<Value, CccError> {

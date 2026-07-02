@@ -1,3 +1,5 @@
+use domain::error::CccError;
+
 use crate::test_fixture::{add, call, div, duration_literal, duration_value, int, mul, neg, sub};
 
 use super::eval;
@@ -169,4 +171,72 @@ fn eval_duration_divide_zero_is_error() {
 
     // Assert
     assert!(result.is_err());
+}
+
+// --- Overflow ---
+
+#[test]
+fn eval_duration_literal_overflow_is_error() {
+    // Arrange: 9999999999999999 hours exceed the i64 seconds range
+    let expression = duration_literal(9_999_999_999_999_999, 0, 0);
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("duration out of range".to_string())
+    );
+}
+
+#[test]
+fn eval_duration_constructor_overflow_is_error() {
+    // Arrange: DurationTime(99999999999999999 days, 0, 0, 0)
+    let expression = call(
+        "DurationTime",
+        vec![int(99_999_999_999_999_999), int(0), int(0), int(0)],
+    );
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("DurationTime: duration out of range".to_string())
+    );
+}
+
+#[test]
+fn eval_duration_add_overflow_is_error() {
+    // Arrange: i64::MAX seconds is 2562047788015215:30:07; adding one second overflows
+    let expression = add(
+        duration_literal(2_562_047_788_015_215, 30, 7),
+        duration_literal(0, 0, 1),
+    );
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("duration out of range".to_string())
+    );
+}
+
+#[test]
+fn eval_duration_multiply_overflow_is_error() {
+    // Arrange
+    let expression = mul(duration_literal(2_562_047_788_015_215, 0, 0), int(2));
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval("duration out of range".to_string())
+    );
 }
