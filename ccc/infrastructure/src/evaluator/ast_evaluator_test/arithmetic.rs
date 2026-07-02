@@ -176,6 +176,53 @@ fn modulo_floats() {
     }
 }
 
+// --- Integer overflow ---
+
+#[test]
+fn add_overflow_reports_error() {
+    // Arrange
+    let expression = add(int(i64::MAX), int(1));
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval(format!("integer overflow: {} + 1", i64::MAX))
+    );
+}
+
+#[test]
+fn subtract_overflow_reports_error() {
+    // Arrange
+    let expression = sub(int(i64::MIN), int(1));
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval(format!("integer overflow: {} - 1", i64::MIN))
+    );
+}
+
+#[test]
+fn multiply_overflow_reports_error() {
+    // Arrange
+    let expression = mul(int(i64::MAX), int(2));
+
+    // Act
+    let result = eval(expression);
+
+    // Assert
+    assert_eq!(
+        result.unwrap_err(),
+        CccError::eval(format!("integer overflow: {} * 2", i64::MAX))
+    );
+}
+
 // --- Nested expressions ---
 
 #[test]
