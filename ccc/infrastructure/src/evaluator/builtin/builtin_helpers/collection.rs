@@ -1,14 +1,18 @@
 use domain::error::CccError;
 use domain::value::Value;
 
+// Mixed-type lists are rejected by the type checker, so a non-numeric element
+// here means the whole (homogeneous) list has an unsupported type — say so
+// instead of the misleading "must be the same type".
 pub fn collect_numbers(name: &str, elements: &[Value]) -> Result<Vec<f64>, CccError> {
     elements
         .iter()
         .map(|e| match e {
             Value::Integer(n) => Ok(*n as f64),
             Value::Float(n) => Ok(*n),
-            _ => Err(CccError::eval(format!(
-                "{name}: list elements must be the same type"
+            other => Err(CccError::eval(format!(
+                "{name}: expected numeric list elements, got {}",
+                other.type_name()
             ))),
         })
         .collect()
@@ -19,8 +23,9 @@ pub fn collect_seconds(name: &str, elements: &[Value]) -> Result<Vec<i64>, CccEr
         .iter()
         .map(|e| match e {
             Value::DurationTime(s) => Ok(s.seconds()),
-            _ => Err(CccError::eval(format!(
-                "{name}: list elements must be the same type"
+            other => Err(CccError::eval(format!(
+                "{name}: expected duration list elements, got {}",
+                other.type_name()
             ))),
         })
         .collect()
@@ -31,8 +36,9 @@ pub fn collect_integers(name: &str, elements: &[Value]) -> Result<Vec<i64>, CccE
         .iter()
         .map(|e| match e {
             Value::Integer(n) => Ok(*n),
-            _ => Err(CccError::eval(format!(
-                "{name}: list elements must be the same type"
+            other => Err(CccError::eval(format!(
+                "{name}: expected integer list elements, got {}",
+                other.type_name()
             ))),
         })
         .collect()
