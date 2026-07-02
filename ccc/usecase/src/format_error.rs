@@ -4,9 +4,9 @@ use domain::error::CccError;
 ///
 /// When the error includes position info, produces output like:
 /// ```text
-///   2 + + 3
+///   2 + * 3
 ///       ^
-///   error: expected number, function call, or '('
+///   error: expected number, function call, list, or '('
 /// ```
 pub fn format_error_with_caret(input: &str, error: &CccError) -> String {
     let position = match error {

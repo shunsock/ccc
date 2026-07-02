@@ -126,8 +126,8 @@ Applying a unary operator to other types is a type error.
 Any combination not listed above results in a type error:
 
 ```
-  "hello" + 1
-  error: type check: unsupported operation: ...
+  1 + 1:30:00
+  error: type error: unsupported operation: integer + duration
 ```
 
 ## Function Type Rules
