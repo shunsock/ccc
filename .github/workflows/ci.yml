@@ -3,24 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
-    paths:
-      - "**.rs"
-      - "**.pest"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "flake.nix"
-      - "flake.lock"
-      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "**.rs"
-      - "**.pest"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "flake.nix"
-      - "flake.lock"
-      - ".github/workflows/ci.yml"
 
 permissions:
   contents: read
@@ -29,7 +13,34 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # rust に関わる変更があるかを判定する。無関係な PR (github-actions 更新等) では
+  # 後続ジョブを skip するが、skip された required check は "passing" 扱いになるため
+  # auto-merge が詰まらない。workflow-level の paths filter を使うと workflow 自体が
+  # 発火せず required check が「待ち」で詰まるため、判定をジョブ内部へ移している。
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      rust: ${{ steps.filter.outputs.rust }}
+    steps:
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+        id: filter
+        with:
+          filters: |
+            rust:
+              - '**.rs'
+              - '**.pest'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'flake.nix'
+              - 'flake.lock'
+              - '.github/workflows/ci.yml'
+
   format:
+    needs: changes
+    if: ${{ needs.changes.outputs.rust == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -44,6 +55,8 @@ jobs:
       - run: cargo fmt --all --check
 
   lint:
+    needs: changes
+    if: ${{ needs.changes.outputs.rust == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -59,6 +72,8 @@ jobs:
       - run: cargo clippy --workspace -- -D warnings
 
   build:
+    needs: changes
+    if: ${{ needs.changes.outputs.rust == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -72,6 +87,8 @@ jobs:
       - run: cargo build --workspace
 
   test:
+    needs: changes
+    if: ${{ needs.changes.outputs.rust == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -85,6 +102,8 @@ jobs:
       - run: cargo test --workspace
 
   coverage:
+    needs: changes
+    if: ${{ needs.changes.outputs.rust == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
