@@ -14,22 +14,10 @@ A command-line calculator written in Rust. It supports arithmetic operations, bu
 
 ## Installation
 
-### With Nix (recommended)
-
-```bash
-nix profile install github:shunsock/ccc
-```
-
 ### Build from source
 
 ```bash
 cargo build --release
-```
-
-### Build with Nix
-
-```bash
-nix build
 ```
 
 ## Usage
@@ -60,6 +48,24 @@ echo "2 + 3" | ccc
 ```bash
 echo "10" | ccc "+ 5"
 # 15
+```
+
+## Development
+
+The development environment is managed by [LazyNix](https://github.com/shunsock/lazynix). `lazynix.yaml` declares the toolchain and `flake.nix` / `flake.lock` are generated from it.
+
+```bash
+# Enter the development shell (rustc, cargo, clippy, rustfmt, rust-analyzer)
+nix run github:shunsock/lazynix -- develop
+
+# Run the full check suite (fmt, clippy, build, test)
+nix run github:shunsock/lazynix -- test
+```
+
+Plain Nix also works since `flake.nix` is a standard flake:
+
+```bash
+nix develop
 ```
 
 ## Documentation
